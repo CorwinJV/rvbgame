@@ -1,0 +1,5 @@
+namespace BE
+{
+	
+
+} // namespace BE

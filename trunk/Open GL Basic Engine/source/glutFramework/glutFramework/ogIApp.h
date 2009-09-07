@@ -1,0 +1,5 @@
+#define thisIsForWhenTheButtonIsNotBeingHoveredOverByTheMouseOrBeingClicked normal
+#define thisIsUnlikeTheAboveImageAndIsForWhenTheUserClicksOntoTheButtonWithTheMouse clicked
+#define andFinallyThisIsForWhenTheUserIsNotClickingTheMouseButIsJustHoveringOverItWithTheMouse hover
+#define stupidGraphicsType pixmap
+#define fuckingPointers *
