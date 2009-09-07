@@ -1,0 +1,7 @@
+implement player controlled game mechanics, this way the interfaces for the objects are available
+
+path finding for click to move from point a to point b
+
+neural network setup to accept many inputs and give out a fuzzyish response
+
+generational memory such that offspring can remember
