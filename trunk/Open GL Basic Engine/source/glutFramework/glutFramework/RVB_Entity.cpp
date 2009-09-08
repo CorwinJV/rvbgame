@@ -7,7 +7,7 @@ void RVB_Entity::Update()
 	timeSinceLastUpdate = clock() - timeOfLastUpdate;
 
 	// We want this for time stepping.
-	if(timeSinceLastUpdate > (timeStep*1000)) // (timestep == number of seconds)
+	if(timeSinceLastUpdate > (timeStep*0)) // (timestep == number of seconds)
 	{
 		// DEBUG
 		//cout << "It's been " << (float)(timeStep*1000) << "ms for objType: ";
