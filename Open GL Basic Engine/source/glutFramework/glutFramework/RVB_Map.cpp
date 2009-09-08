@@ -370,7 +370,6 @@ void RVB_Map::recalcBoard()
 	// determine the current dimensions of the tiles based of their original dimensions and its scale
 	currentTileWidth = tileWidth * scaleFactor;
 	currentTileHeight = tileHeight * scaleFactor;
-	
 
 	// now that we know how big the dimensions are, find the middle of them
 	halfHeight = currentTileHeight / 2;
@@ -446,6 +445,7 @@ RVB_Entity* RVB_Map::cycleEntityUp(RVB_Entity* selectedEntity)
 			selectedEntitysIndex = i;
 		}
 	}
+
 	if(selectedEntitysIndex == -1)
 	{
 		return NULL;

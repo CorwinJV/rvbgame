@@ -1,12 +1,35 @@
 #include "rvb_weapon.h"
+#include <iostream>
+	//int damage;						// amount of damage this weapon does
+	//int range;						// the range of the weapon
 
+	//int clipAmmo;					// how much ammo in the clip
+	//int clipSize;					// how much ammo your clip can hold
+
+	//double closeRange;				// what is considered close/medium/long for this weapon
+	//double mediumRange;				
+	//double longRange;
 
 rvbWeapon::rvbWeapon()
 {
+	std::cout << "If you see this, someone done fucked up." << std::endl;
+}
+
+rvbWeapon::rvbWeapon(int damage_n, int range_n, int clipSize_n, int clipAmmo_n)
+{
+	damage = damage_n;
+	range = range_n;
+	clipSize = clipSize_n;
+	clipAmmo = clipAmmo_n;
+
+	closeRange = range/3;
+	mediumRange = 2*closeRange;
+	longRange = range;
 }
 
 rvbWeapon::~rvbWeapon()
 {
+
 }
 
 // returns the damage the weapon does
@@ -16,70 +39,65 @@ int rvbWeapon::getDamage()
 }
 
 // returns the range the weapon has
-int rvbWeapon::getRange()	
+int rvbWeapon::getRange()					
 {
 	return range;
 }
 
-// returns how effective this weapon is at short range
-int rvbWeapon::getEffectiveShortRange()	
+// pass in the distance you are trying to fire at, it returns how accurate this is
+double rvbWeapon::getAccuracy(double distance)
 {
-	return effectiveShortRange;
+	// does something interesting
+	double accuracy = 0.01;
+
+	// 90% close
+	if((distance >= 0) && (distance <= closeRange))
+	{
+		accuracy = 90.0;
+	}
+	// 75% medium
+	else if (( distance > closeRange) && (distance <= mediumRange))
+	{
+		accuracy = 75.0;
+	}
+	// 60% far
+	else if (( distance > mediumRange) && (distance <= longRange))
+	{
+		accuracy = 60.0345;
+	}
+
+	return accuracy;  // better than returning inaccuracy
 }
 
-// returns how effective this weapon is at medium range
-int rvbWeapon::getEffectiveMediumRange()
-{
-	return effectiveMediumRange;
-}
-
-// returns how effective this weapon is at long range
-int rvbWeapon::getEffectiveLongRange()
-{
-	return effectiveLongRange;
-}
-
-// checks the amount of ammo the clip can hold
+// returns the ammount of ammo the clip can hold
 int rvbWeapon::getClipSize()
 {
 	return clipSize;
 }
 
-// returns the total amount of ammo for this weapon
-int rvbWeapon::getTotalAmmo()
+// returns the ammount of ammo left in the clip
+int rvbWeapon::getAmmoLeftInClip()
 {
-	// add the ammo you have in the clip to whatever you have in reserve
-	int totAmmo = clipAmmo + reserveAmmo;
-
-	return totAmmo;
+	return clipAmmo;
 }
 
-// takes ammo from reserve and moves it to ready
-void rvbWeapon::reload()
+// you tell it how much ammo you have on you, it returns how much ammo you have left after reloading the clip
+int rvbWeapon::reload(int ammoLeft)
 {
-	// set the ammo available to zero
-	int ammoAvailable = 0;
+	int ammoPool = ammoLeft;
 
-	// make sure we have ammo to reload
-	if(reserveAmmo > 0)
+	if(clipAmmo < clipSize)
 	{
-		// if our reserve ammo is smaller than our clip, use whatever we have left
-		if(reserveAmmo <= clipSize)
+		if(ammoPool >= (clipSize - clipAmmo))
 		{
-			ammoAvailable = reserveAmmo;
+			ammoPool = ammoPool - (clipSize - clipAmmo);
+			clipAmmo = clipSize;
 		}
-		else	// otherwise fill the clip
+		else
 		{
-			ammoAvailable = clipSize;
+			clipAmmo += ammoPool;
+			ammoPool = 0;
 		}
-		// remove however much ammo was used from the reserve cache
-		reserveAmmo -= ammoAvailable;
 	}
-}
-
-// adds the ammo you've picked up to the reserve ammo
-void rvbWeapon::addAmmo(int quantity)
-{
-	// add however much ammo we've picked up to our reserve cache
-	reserveAmmo += quantity;
+	return ammoPool;
 }

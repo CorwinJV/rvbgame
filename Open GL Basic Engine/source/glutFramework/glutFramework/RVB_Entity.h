@@ -4,8 +4,10 @@
 #include <vector>
 #include "RVB_Path.h"
 #include <ctime>
+#include "RVB_weapon.h"
+#include "ammoPack.h"
 
-using namespace std;
+using namespace std; // syphilis
 
 enum entityDirection{ NORTH, NORTHEAST, EAST, SOUTHEAST, SOUTH, SOUTHWEST, WEST, NORTHWEST };
 
@@ -32,6 +34,7 @@ public:
 	void setTarget(int newX, int newY);
 	void setPosition(int newX, int newY);
 
+
 private:
 	int xPos;
 	int yPos;
@@ -49,7 +52,18 @@ private:
 	vector<RVB_Entity*>* objectList;
 
 	rvbPath* myPath;
-	
+	RVB_Entity* myEntityTarget;			// this is the entity i am current interested in for whatever reason
+										// maybe i want to kill it, maybe i'm running from it
+										// maybe i just saw it and we want to be friends
+
+	double fireAtX;		// the x/y coords for the tile i am firing at
+	double fireAtY;		// who knows or cares if anything is inside of it
+
+	ammoPack myAmmoPack;
+
+	rvbWeapon *myWeapon1;
+	rvbWeapon *myWeapon2;
+	rvbWeapon *currentWeapon;
 };
 
 

@@ -1,6 +1,14 @@
 #include "RVB_entity.h" 
 #include "RVB_Map.h"
 
+//		FUN NAME  rvbWeapon(dmg, range, clip, ammo)
+#define RVBPISTOL rvbWeapon(10, 6, 10, 10);
+#define RVBSHOTTY rvbWeapon(30, 3, 4, 4);
+#define RVBRIFFLE rvbWeapon(20, 12, 1, 1);
+
+
+enum entityState { ATTACKING, TAKING_COVER, MOVING, IDLE, SCANNING };
+
 void RVB_Entity::Update()
 {
 	// Query how long it's been since our last update
@@ -185,4 +193,15 @@ RVB_Entity::RVB_Entity(entityType newType, int newX, int newY, entityDirection n
 	myPath = NULL;
 
 	timeOfLastUpdate = clock();
+
+	myAmmoPack.pistolAmmo = 0;
+	myAmmoPack.rifleAmmo = 0;
+	myAmmoPack.shotgunAmmo = 0;
+	
+	myWeapon1 = new RVBSHOTTY;
+	myWeapon2 = new RVBRIFFLE;
+	currentWeapon = myWeapon2;
+
+	myEntityTarget = NULL;
+
 }
