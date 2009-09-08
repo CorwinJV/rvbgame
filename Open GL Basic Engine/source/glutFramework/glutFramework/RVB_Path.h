@@ -48,6 +48,7 @@ public:
 
 	bool drawPath(double scaleFactor, int offX, int offY, int width, entityType type);				// draws the calculated path
 	bool drawAll(double scaleFactor);					// draws the board and color in open/closed list
+	bool isThereACalculatedPath();
 };
 
 #endif

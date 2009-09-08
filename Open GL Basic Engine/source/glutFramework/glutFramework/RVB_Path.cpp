@@ -64,8 +64,6 @@ void rvbPath::processPath()
 	
 	while(!doneChecking)
 	{
-		
-		
 		// first check to make sure there is a node in the open list
 		if(openList.size() == 0)
 		{
@@ -137,6 +135,41 @@ void rvbPath::processPath()
 		}
 		// loooooooooooooop until complete
 	}
+	// if we get to this spot, we cannot reach the target, in theory
+	// so lets recalculate the best possible spot and try again
+
+	doneChecking = false;
+
+	bestNodeSoFar = NULL;
+	// first lets find the lowest manhattan distance on the board that is not -1
+	int boardWidth = board->getBoardWidth();
+	int boardHeight = board->getBoardHeight();
+
+	int bestManhattan = boardWidth + boardHeight + 1;
+
+	int bestManhattanX = -1;
+	int bestManhattanY = -1;
+	
+	for(int x = 0; x < boardWidth; x++)
+	{
+		for(int y = 0; y < boardHeight; y++)
+		{
+			if((nodeList[x][y]->getManhattanDistance() < bestManhattan) &&
+			   (nodeList[x][y]->getManhattanDistance() > -1))
+			{
+				bestManhattan = nodeList[x][y]->getManhattanDistance();
+				bestManhattanX = x;
+				bestManhattanY = y;
+			}
+		}
+	}
+
+	if(bestManhattanX != -1)
+	{
+		endX = bestManhattanX;
+		endY = bestManhattanY;
+		generatePath();
+	}
 }
 
 
@@ -176,7 +209,15 @@ bool rvbPath::nodeCheck(int offX, int offY, int moveCost, aStarNode* potentialPa
 			// lets add it to the open list
 			openList.push_back(nodeList[destX][destY]);
 			// then lets make ourself the parent and pass in some info
-			nodeList[destX][destY]->setParent(potentialParentNode, potentialParentNode->getSteps() + moveCost);
+			if(potentialParentNode->getSteps() > 0)
+			{
+				nodeList[destX][destY]->setParent(potentialParentNode, potentialParentNode->getSteps() + moveCost);
+			}
+			else
+			{
+				nodeList[destX][destY]->setParent(potentialParentNode, moveCost);
+			}
+
 			if((destX == endX) && (destY == endY))
 			{
 				// look ma, we found the end square
@@ -248,10 +289,14 @@ bool rvbPath::isPathStillValid()
 			return false;
 		}
 	}
+	return true;
 }
 
 void rvbPath::recalcPath(int startX_n, int startY_n, int endX_n, int endY_n)
 {
+	// maybe so shit won't warp back when their path gets obstructed
+	//calculatedPath.clear();
+
 	startX = startX_n;
 	startY = startY_n;
 
@@ -314,19 +359,6 @@ bool rvbPath::drawPath(double scaleFactor, int offX, int offY, int width, entity
 
 	for(int x = 0; x < pathSize; x++)
 	{
-		// A* Debug Text Info
-		/*tempStream.str("");
-		tempStream << calculatedPath[x]->getHueristicValue();
-		hueristic = tempStream.str();
-
-		tempStream.str("");
-		tempStream << calculatedPath[x]->getManhattanDistance();
-		manhattan = tempStream.str();
-
-		tempStream.str("");
-		tempStream << calculatedPath[x]->getSteps();
-		steps = tempStream.str();*/
-
 		int tempX = calculatedPath[x]->getX();
 		int tempY = calculatedPath[x]->getY();
 
@@ -350,7 +382,24 @@ bool rvbPath::drawPath(double scaleFactor, int offX, int offY, int width, entity
 								((tempX*width)*scaleFactor)+offX,  // X
 								((tempY*width)*scaleFactor)+offY); // Y
 
-		// A* Debug Text Info
+		//// A* Debug Text Info
+		//int tempInt = 0;
+		//tempStream.str("");
+		//tempInt = calculatedPath[x]->getHueristicValue();
+		//if(tempInt >= 0)	{	tempStream << tempInt;	}
+		//hueristic = tempStream.str();
+
+		//tempStream.str("");
+		//tempInt = calculatedPath[x]->getManhattanDistance();
+		//if(tempInt >= 0)	{	tempStream << tempInt;	}
+		//manhattan = tempStream.str();
+
+		//tempStream.str("");
+		//tempInt = calculatedPath[x]->getSteps();
+		//if(tempInt >= 0)	{	tempStream << tempInt;	}
+		//steps = tempStream.str();
+
+		//// A* Debug Text Info
 		//GameVars->fontArialRed12.drawText(((tempX*width)*scaleFactor)+ offX - (width * scaleFactor * .33) + (width * scaleFactor * 0.33),
 		//							   ((tempY*width)*scaleFactor)+ offY - (width * scaleFactor * .33) + (width * scaleFactor * 0.33), steps, 10);
 
@@ -390,7 +439,7 @@ void rvbPath::generatePath()
 		while(!foundStart)
 		{
 			// true or false?
-			(!(!(!(!(!(!(!(!(!(!(!(!true))))))))))));
+			//(!(!(!(!(!(!(!(!(!(!(!(!true))))))))))));
 
 			// lets push the current node onto the pathing...
 			tempPath.push_back(currentNode);
@@ -420,4 +469,13 @@ void rvbPath::generatePath()
 	{   
 		calculatedPath.push_back(tempPath[x]);
     }
+}
+
+bool rvbPath::isThereACalculatedPath()
+{
+	if(calculatedPath.size() > 0)
+	{
+		return true;
+	}
+	return false;
 }

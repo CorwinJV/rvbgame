@@ -50,7 +50,7 @@ public: // Public Interface
 	void clearEntityTargets();
 	void setAllEntityTargets(int mouseX, int mouseY);
 	RVB_Entity *getSelectableEntity(int mouseX, int mouseY);
-
+	bool RVB_Map::isThereAnEntityAt(int xPos, int yPos);
 
 
 	void Update();

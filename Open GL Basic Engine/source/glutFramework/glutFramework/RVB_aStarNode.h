@@ -24,7 +24,7 @@ public:
 		endX = endX_n;
 		endY = endY_n;
 		movementCost = 0;
-		manhattanDistance = abs(myX - endX) + abs(myY - endY);
+		manhattanDistance = -1;
 		parent = NULL;
 		available = available_n;
 	};
@@ -46,7 +46,7 @@ public:
 		endX = endX_n;
 		endY = endY_n;
 		movementCost = 0;
-		manhattanDistance = abs(myX - endX) + abs(myY - endY);
+		manhattanDistance = -1;
 		parent = NULL;
 		available = available_n;
 	}
@@ -56,12 +56,12 @@ public:
 		return parent;
 	}
 
-
 	void setParent(aStarNode* parentNode, int steps_n)
 	{
 		// if its available, go ahead and set parent
 		if(available)
 		{
+			manhattanDistance = abs(myX - endX) + abs(myY - endY);
 			parent = parentNode;
 			steps = steps_n;
 			hueristicValue = steps + manhattanDistance;

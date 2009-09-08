@@ -23,13 +23,13 @@ void RVB_MainState::init()
 	currentMap->addEntity(RED, 5, 12, NORTH);
 	currentMap->addEntity(RED, 5, 15, NORTH);
 
-	for(int x = 0; x < 25; x+=3)
-	{
-		currentMap->addEntity(RED, 1, x, NORTH);
-		currentMap->addEntity(RED, 2, x, NORTH);
-		currentMap->addEntity(BLUE, 38, x, NORTH);
-		currentMap->addEntity(BLUE, 37, x, NORTH);
-	}
+	//for(int x = 0; x < 25; x+=3)
+	//{
+	//	currentMap->addEntity(RED, 1, x, NORTH);
+	//	currentMap->addEntity(RED, 2, x, NORTH);
+	//	currentMap->addEntity(BLUE, 38, x, NORTH);
+	//	currentMap->addEntity(BLUE, 37, x, NORTH);
+	//}
 
 
 	currentMap->addEntity(BLUE, 35, 3, NORTH);
@@ -42,6 +42,31 @@ void RVB_MainState::init()
 
 	curMouseX = 0;
 	curMouseY = 0;
+
+	int boardWidth = currentMap->getBoardWidth();
+	int boardHeight = currentMap->getBoardHeight();
+
+	int yInc = 0;
+	for(int y = 2; y < boardHeight; y+= 2)
+	{
+		int counterLimit = yInc + 2;
+		yInc++;
+		int counter = 0;
+
+		for(int x = 0; x < boardWidth; x++)
+		{		
+			counter++;
+			if(counter < counterLimit)
+			{
+				currentMap->toggleObstacle(x, y);
+			}
+			else
+			{
+				counter = 0;
+			}
+		}
+
+	}
 }
 
 //====================
