@@ -72,9 +72,7 @@ void RVB_Map::Update()
 	{
 		objectList[xi]->Update();
 	}	
-
-	mapOffsetX = (tileWidth * scaleFactor * cameraCenterX) - (screenWidth / 2);
-	mapOffsetY = (tileHeight * scaleFactor * cameraCenterY) - (screenHeight / 3);
+	recalcBoard();
 }
 
 //====================
@@ -322,19 +320,19 @@ void RVB_Map::pan(mapDirection direction)
 	{
 	case UP:
 		//mapOffsetY += panAmount;
-		cameraCenterY += panAmount;
+		cameraCenterY -= panAmount;
 		break;
 	case DOWN:
 		//mapOffsetY -= panAmount;
-		cameraCenterY -= panAmount;
+		cameraCenterY += panAmount;
 		break;
 	case LEFT:
 		//mapOffsetX += panAmount;
-		cameraCenterX += panAmount;
+		cameraCenterX -= panAmount;
 		break;
 	case RIGHT:
 		//mapOffsetX -= panAmount;
-		cameraCenterX -= panAmount;
+		cameraCenterX += panAmount;
 		break;
 	default:
 		break;
@@ -370,24 +368,17 @@ void RVB_Map::center()
 void RVB_Map::recalcBoard()
 {
 	// determine the current dimensions of the tiles based of their original dimensions and its scale
-	currentTileHeight = tileHeight * scaleFactor;
 	currentTileWidth = tileWidth * scaleFactor;
+	currentTileHeight = tileHeight * scaleFactor;
+	
 
 	// now that we know how big the dimensions are, find the middle of them
 	halfHeight = currentTileHeight / 2;
 	halfWidth  = currentTileWidth  / 2;
 
-	// now calculate the new dimensions of the board using the new tile dimensions and the size of the board
-	overallHeight = currentTileHeight * mapHeight;
-	overallWidth  = currentTileWidth  * mapWidth;
-
 	// determine the new offsets
-	mapOffsetX = (screenWidth / 2) + (halfWidth * cameraCenterY) - (halfWidth * cameraCenterX) - (halfWidth * 2);
-	mapOffsetY = (screenHeight / 2) - (halfHeight * cameraCenterY) - (halfHeight * cameraCenterX) - halfHeight;
-
-	// now set them
-	setOffsetX(mapOffsetX);
-	setOffsetY(mapOffsetY);
+	mapOffsetX = ((screenWidth / 2) - (currentTileWidth * cameraCenterX));
+	mapOffsetY = ((screenHeight / 2) - (currentTileHeight * cameraCenterY));
 }
 
 void RVB_Map::zoomIn()

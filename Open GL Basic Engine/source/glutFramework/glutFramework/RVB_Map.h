@@ -28,16 +28,16 @@ private: // Private Data Members
 	int panRate;							// the rate at which you can scroll across the map
 	int mapOffsetX;							// based in pixels, off current X, calculated off of scale
 	int mapOffsetY;							// based in pixles, off current Y, calculated off of scale
-	int cameraCenterX;						// the x position of the camera to stay centered on the map
-	int cameraCenterY;						// the y position of the camera to stay centered on the map
+	double cameraCenterX;						// the x position of the camera to stay centered on the map
+	double cameraCenterY;						// the y position of the camera to stay centered on the map
 	int mapWidth;							// the width of the map in tiles
 	int mapHeight;							// the height of the map in tiles
-	int currentTileWidth;					// depending on zoom, this is the current width of the tile (height as well)
-	int currentTileHeight;					// depending on zoom, this is the current height of the tile
+	double currentTileWidth;					// depending on zoom, this is the current width of the tile (height as well)
+	double currentTileHeight;					// depending on zoom, this is the current height of the tile
 	double halfHeight;						// half the tile height (needed for calculations)
 	double halfWidth;						// half the tile width (needed for calculations)
-	int overallHeight;						// used to store the current height of the entire board
-	int overallWidth;						// used to store the current width of the entire board
+	double overallHeight;						// used to store the current height of the entire board
+	double overallWidth;						// used to store the current width of the entire board
 	static const int screenHeight = 768;	// fixed screen height in pixels
 	static const int screenWidth = 1024;	// fixed screen width in pixles
 	static const int tileWidth = 128;		// fixed width of each tile (since square it's height as well)

@@ -46,26 +46,26 @@ void RVB_MainState::init()
 	int boardWidth = currentMap->getBoardWidth();
 	int boardHeight = currentMap->getBoardHeight();
 
-	//int yInc = 0;
-	//for(int y = 2; y < boardHeight; y+= 2)
-	//{
-	//	int counterLimit = yInc + 2;
-	//	yInc++;
-	//	int counter = 0;
+	/*int yInc = 0;
+	for(int y = 2; y < boardHeight; y+= 2)
+	{
+		int counterLimit = yInc + 2;
+		yInc++;
+		int counter = 0;
 
-	//	for(int x = 0; x < boardWidth; x++)
-	//	{		
-	//		counter++;
-	//		if(counter < counterLimit)
-	//		{
-	//			currentMap->toggleObstacle(x, y);
-	//		}
-	//		else
-	//		{
-	//			counter = 0;
-	//		}
-	//	}
-	//}
+		for(int x = 0; x < boardWidth; x++)
+		{		
+			counter++;
+			if(counter < counterLimit)
+			{
+				currentMap->toggleObstacle(x, y);
+			}
+			else
+			{
+				counter = 0;
+			}
+		}
+	}*/
 }
 
 //====================
