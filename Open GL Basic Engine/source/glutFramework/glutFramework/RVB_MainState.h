@@ -10,7 +10,9 @@
 class RVB_MainState : public GameState
 {
 public:
-	RVB_MainState(GameStateManager &Parent, int newID) : GameState(Parent, newID)
+	RVB_MainState(GameStateManager &Parent, int newID) 
+		: GameState(Parent, newID), isLeftMouseDown(false),
+		selectedEntityList(NULL)
 	{
 		init();
 	}
@@ -26,16 +28,22 @@ private:
 	int clickedY;
 	int curMouseX;
 	int curMouseY;
+	bool isLeftMouseDown;
 
-	RVB_Entity* selectedEntity;
+	//RVB_Entity* selectedEntity;
+	vector<RVB_Entity*>* selectedEntityList;
 
 public:
 	bool Update();
 	bool Draw();
 
-	void RVB_MainState::processMouse(int x, int y);
-	void RVB_MainState::processMouseClick(int button, int state, int x, int y);
-	void RVB_MainState::keyboardInput(unsigned char c, int x, int y);
+	void toggleSelectedEntity(RVB_Entity* entityToToggle);
+	void setSelectedEntitiesTargets(int tX, int tY);
+	
+	void processMouse(int x, int y);
+	void processMouseClick(int button, int state, int x, int y);
+	void keyboardInput(unsigned char c, int x, int y);
+	
 };
 
 

@@ -83,6 +83,7 @@ void oglGameVars::init()
 	rvbEntityRedN	= new oglTexture2D();
 	rvbEntitySelected = new oglTexture2D();
 	rvbEntityTarget	= new oglTexture2D();
+	rvbSelectionPix = new oglTexture2D();
 	redPathImg = new oglTexture2D();
 	bluePathImg = new oglTexture2D();
 
@@ -97,6 +98,7 @@ void oglGameVars::init()
 	rvbEntityRedN->loadImage("entityRedN.png", 128, 128);
 	rvbEntitySelected->loadImage("entitySelected.png", 128, 128);
 	rvbEntityTarget->loadImage("entityTarget.png", 128, 128);
+	rvbSelectionPix->loadImage("greenPixel.png", 1, 1); 
 	redPathImg->loadImage("rvbRedPath.png", 128, 128);
 	bluePathImg->loadImage("rvbBluePath.png", 128, 128);
 
