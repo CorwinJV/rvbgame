@@ -409,3 +409,16 @@ RVB_Entity* RVB_Map::cycleEntityUp(RVB_Entity* selectedEntity)
 	return NULL;
 }
 
+bool RVB_Map::isThereAnEntityAt(int xPos, int yPos)
+{
+	int size = objectList.size();
+	for(int i = 0; i < size; i++)
+	{
+		if((objectList[i]->getXPos() == xPos) &&
+		   (objectList[i]->getYPos() == yPos))
+		{
+			return true;
+		}
+	}
+	return false;
+}

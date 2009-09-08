@@ -19,14 +19,24 @@ void RVB_Entity::Update()
 		//////////////////////////////
 		// Recalculate our path
 		// 
+		
+		// if we have a path
 		if(myPath != NULL)
 		{
-			if((xPos != targetX) || (yPos != targetY))
+			// if we haven't reached our target position...
+			if(((xPos != targetX) || (yPos != targetY)) && (targetX != -1) && (targetY != -1))
 			{
+				// lets make sure its still valid
 				if(!(myPath->isPathStillValid()))
 				{
-					myPath->recalcPath(xPos, yPos, targetX, targetY);
+					delete myPath;
+					myPath = new rvbPath(xPos, yPos, targetX, targetY, board->getBoardWidth(), board->getBoardHeight(), board);
+					//myPath->recalcPath(xPos, yPos, targetX, targetY);
 				}
+				/*else if(!(myPath->isThereACalculatedPath()))
+				{
+					myPath->recalcPath(xPos, yPos, targetX, targetY);
+				}*/
 			}
 			else
 			{
@@ -34,6 +44,8 @@ void RVB_Entity::Update()
 				myPath = NULL;
 			}
 		}
+		
+
 		//setTarget(targetX, targetY);
 
 		//////////////////////////////
@@ -43,12 +55,15 @@ void RVB_Entity::Update()
 			destNode = myPath->advancePathNode();
 			if(destNode != NULL)
 			{
-				xPos = destNode->getX();
-				yPos = destNode->getY();
+				if(board->isTileValidMove(destNode->getX(), destNode->getY()))
+				{
+					xPos = destNode->getX();
+					yPos = destNode->getY();
+				}
 			}
 		}
-		//////////////////////////////
 
+		//////////////////////////////
 		// Log our update
 		timeOfLastUpdate = clock();
 	}
@@ -143,7 +158,9 @@ void RVB_Entity::setTarget(int newX, int newY)
 		}
 		else
 		{
-			myPath->recalcPath(xPos, yPos, targetX, targetY);
+			delete myPath;
+			myPath = new rvbPath(xPos, yPos, targetX, targetY, board->getBoardWidth(), board->getBoardHeight(), board);
+			//myPath->recalcPath(xPos, yPos, targetX, targetY);
 		}
 	}
 }
