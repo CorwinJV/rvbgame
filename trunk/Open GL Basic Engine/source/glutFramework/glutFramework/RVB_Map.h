@@ -63,6 +63,7 @@ public: // Public Interface
 	void clearEntityTargets();
 	void setAllEntityTargets(int mouseX, int mouseY);
 	RVB_Entity *getSelectableEntity(int mouseX, int mouseY);
+	RVB_Entity *getSelectableEntityAtGridCoord(int gridX, int gridY);
 	bool isThereAnEntityAt(int xPos, int yPos);
 
 	void Update();

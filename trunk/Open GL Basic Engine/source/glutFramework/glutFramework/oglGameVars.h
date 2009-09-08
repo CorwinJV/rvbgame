@@ -105,6 +105,7 @@ public:
 	oglTexture2D*				rvbEntityRedN;
 	oglTexture2D*				rvbEntitySelected;
 	oglTexture2D*				rvbEntityTarget;
+	oglTexture2D*				rvbSelectionPix;
 
 	oglTexture2D*				redPathImg;
 	oglTexture2D*				bluePathImg;

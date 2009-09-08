@@ -215,20 +215,27 @@ RVB_Entity *RVB_Map::getSelectableEntity(int mouseX, int mouseY)
 	getGridCoord(curX, curY, &mapPosX, &mapPosY);
 
 	RVB_Entity* entityToReturn = NULL;
-	if((mapPosX != -1) && 
-	   (mapPosY != -1))
+
+	return getSelectableEntityAtGridCoord(mapPosX, mapPosY);
+}
+
+RVB_Entity *RVB_Map::getSelectableEntityAtGridCoord(int gridX, int gridY)
+{
+	RVB_Entity* entityToReturn = NULL;
+
+	if((gridX > 0) && (gridX < mapWidth) &&
+		(gridY > 0) && (gridY < mapHeight))
 	{
 		int size = objectList.size();
 		for(int i = 0; i < size; i++)
 		{
-			if((objectList[i]->getXPos() == mapPosX) &&
-			   (objectList[i]->getYPos() == mapPosY))
+			if((objectList[i]->getXPos() == gridX) &&
+				(objectList[i]->getYPos() == gridY))
 			{
 				entityToReturn = objectList[i];
 			}
 		}
 	}
-
 	return entityToReturn;
 }
 
