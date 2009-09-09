@@ -221,8 +221,8 @@ RVB_Entity *RVB_Map::getSelectableEntityAtGridCoord(int gridX, int gridY)
 {
 	RVB_Entity* entityToReturn = NULL;
 
-	if((gridX > 0) && (gridX < mapWidth) &&
-		(gridY > 0) && (gridY < mapHeight))
+	if((gridX >= 0) && (gridX < mapWidth) &&
+		(gridY >= 0) && (gridY < mapHeight))
 	{
 		int size = objectList.size();
 		for(int i = 0; i < size; i++)
@@ -481,7 +481,8 @@ bool RVB_Map::isThereAnEntityAt(int xPos, int yPos)
 
 bool RVB_Map::areThereAnyEnemiesAt(int xPos, int yPos, entityType whatColorIAm)
 {
-	for(int x = 0; x < objectList.size(); x++)
+	int size = objectList.size();
+	for(int x = 0; x < size; x++)
 	{
 		if( (objectList[x]->getXPos() == xPos) &&
 			(objectList[x]->getYPos() == yPos) &&
@@ -494,7 +495,8 @@ bool RVB_Map::areThereAnyEnemiesAt(int xPos, int yPos, entityType whatColorIAm)
 }
 bool RVB_Map::areThereAnyFriendsAt(int xPos, int yPos, entityType whatColorIAm)
 {
-	for(int x = 0; x < objectList.size(); x++)
+	int size = objectList.size();
+	for(int x = 0; x < size; x++)
 	{
 		if( (objectList[x]->getXPos() == xPos) &&
 			(objectList[x]->getYPos() == yPos) &&

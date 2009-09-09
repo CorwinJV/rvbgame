@@ -39,10 +39,11 @@ void RVB_Entity::Update()
 				// see if our selected entity target is a good guy or a bad guy
 
 				// if a bad guy...
+				double distanceToTarget = GameVars->getDistanceToTarget(xPos, yPos, targetX, targetY);
 				if(myEntityTarget->getType() != type)
 				{
 					// see if we are in any weapon range of our enemy
-					double distanceToTarget = GameVars->getDistanceToTarget(xPos, yPos, targetX, targetY);
+					
 
 					// for now this will just check weapon 1
 					if(distanceToTarget < myWeapon1->getRange())
@@ -50,6 +51,14 @@ void RVB_Entity::Update()
 						// if so, set state to attacking
 						myLowerState = ATTACKING;
 						// and break
+						break;
+					}
+				}
+				else
+				{
+					if(distanceToTarget < 2)
+					{
+						myLowerState = IDLE;
 						break;
 					}
 				}
