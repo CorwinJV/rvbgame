@@ -39,6 +39,8 @@ public:
 
 	void toggleSelectedEntity(RVB_Entity* entityToToggle);
 	void setSelectedEntitiesTargets(int tX, int tY);
+	void setSelectedEntitiesEnemyTargets(int tX, int tY);
+	void setSelectedEntitiesState(higherState newState);
 	
 	void processMouse(int x, int y);
 	void processMouseClick(int button, int state, int x, int y);

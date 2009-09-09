@@ -74,6 +74,9 @@ public: // Public Interface
 	void toggleObstacle(int xPos, int yPos);
 	TileType getTileTypeAt(int xPos, int yPos);
 	bool isTileValidMove(int xPos, int yPos);
+	bool areThereAnyEnemiesAt(int xPos, int yPos, entityType whatColorIAm);
+	bool areThereAnyFriendsAt(int xPos, int yPos, entityType whatColorIAm);
+
 };
 
 

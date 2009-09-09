@@ -199,12 +199,32 @@ void RVB_MainState::toggleSelectedEntity(RVB_Entity* entityToToggle)
 	}
 }
 
+void RVB_MainState::setSelectedEntitiesState(higherState newState)
+{
+	vector<RVB_Entity*>::iterator itr = selectedEntityList->begin();
+	for(; itr != selectedEntityList->end(); itr++)
+	{
+		(*itr)->setState(newState);
+	}
+}
+
+
 void RVB_MainState::setSelectedEntitiesTargets(int tX, int tY)
 {
 	vector<RVB_Entity*>::iterator itr = selectedEntityList->begin();
 	for(; itr != selectedEntityList->end(); itr++)
 	{
 		(*itr)->setTarget(tX, tY);
+		(*itr)->setState(HIGHERMOVING);
+	}
+}
+
+void RVB_MainState::setSelectedEntitiesEnemyTargets(int tX, int tY)
+{
+	vector<RVB_Entity*>::iterator itr = selectedEntityList->begin();
+	for(; itr != selectedEntityList->end(); itr++)
+	{
+		(*itr)->setEnemyTarget(currentMap->getSelectableEntityAtGridCoord(tX, tY));
 	}
 }
 
@@ -246,7 +266,20 @@ void RVB_MainState::processMouseClick(int button, int state, int x, int y)
 				// Pathfind to empty tile ||  Pathfinds to closest non-obstacle
 			if((gridPosX != -1) && (gridPosY != -1))
 			{
-				setSelectedEntitiesTargets(gridPosX, gridPosY);
+				// if there are no entities or obstacles... then go ahead and set targets
+				if(currentMap->isTileValidMove(gridPosX, gridPosY))
+				{
+					setSelectedEntitiesTargets(gridPosX, gridPosY);
+					// and set them to moving
+					setSelectedEntitiesState(HIGHERMOVING);
+				}
+				// now check to see if there's any enemies at the location
+				if( (currentMap->areThereAnyEnemiesAt(gridPosX, gridPosY, selectedEntityList[0][0]->getType())) ||
+					(currentMap->areThereAnyFriendsAt(gridPosX, gridPosY, selectedEntityList[0][0]->getType())) )
+				{
+					setSelectedEntitiesEnemyTargets(gridPosX, gridPosY);
+					setSelectedEntitiesState(CHASING);
+				}
 			}
 		}
 		//=================
@@ -256,6 +289,8 @@ void RVB_MainState::processMouseClick(int button, int state, int x, int y)
 
 		// On same color entity 
 			// Follow / guard target
+
+		
 			
 	}
 	if((button == GLUT_LEFT) && (state == GLUT_DOWN))
@@ -301,7 +336,12 @@ void RVB_MainState::processMouseClick(int button, int state, int x, int y)
 			int bottom = 0;
 				// The lowest X of our 2 XY coords becomes "left"
 				// the highest X of our 2 XY coords becomes "right"
-			if(gridCoordSet1X < gridCoordSet2X)
+
+			// minor tweak yay ******
+			left = min(gridCoordSet1X, gridCoordSet2X);
+			right = max(gridCoordSet1X, gridCoordSet2X);
+
+			/*if(gridCoordSet1X < gridCoordSet2X)
 			{
 				left = gridCoordSet1X;
 				right = gridCoordSet2X;
@@ -310,7 +350,9 @@ void RVB_MainState::processMouseClick(int button, int state, int x, int y)
 			{
 				left = gridCoordSet2X;
 				right = gridCoordSet1X;
-			}
+			}*/
+
+
 				// The lowest Y of our 2 XY coords becomes "top"
 				// the highest Y of our 2 XY coords becomes "bottom"
 			if(gridCoordSet1Y < gridCoordSet2Y)

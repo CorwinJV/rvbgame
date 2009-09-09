@@ -11,6 +11,9 @@ using namespace std; // syphilis
 
 enum entityDirection{ NORTH, NORTHEAST, EAST, SOUTHEAST, SOUTH, SOUTHWEST, WEST, NORTHWEST };
 
+enum entityState { ATTACKING, TAKING_COVER, MOVING, IDLE, SCANNING };
+enum higherState { CHASING, EVADING, ATTACKMOVE, HIGHERMOVING, HIGHERATTACKING, HIGHERIDLE };
+
 // circular dependancies require circular referencing and circular declarations
 class RVB_Map;
 //class RVB_Path;
@@ -23,6 +26,7 @@ public:
 	RVB_Entity(entityType newType, int newX, int newY, entityDirection newDirection, RVB_Map* parentBoard, vector<RVB_Entity*>* boardObjectList);
 	~RVB_Entity();
 
+	entityType getType();
 	void Update();
 	void Draw(int tileWidth, double scaleFactor, int mapOffsetX, int mapOffsetY);
 	void generatePath();
@@ -33,6 +37,8 @@ public:
 	void clearTarget();
 	void setTarget(int newX, int newY);
 	void setPosition(int newX, int newY);
+	void setState(higherState newState);		// this is so the player (us) can give the entities commands weather they like it or not
+	void setEnemyTarget(RVB_Entity *newTarget);
 
 
 private:
@@ -64,6 +70,11 @@ private:
 	rvbWeapon *myWeapon1;
 	rvbWeapon *myWeapon2;
 	rvbWeapon *currentWeapon;
+
+	higherState myHigherState;
+	entityState myLowerState;
+
+	void doMove();		// old update loop, now just for moving
 };
 
 
