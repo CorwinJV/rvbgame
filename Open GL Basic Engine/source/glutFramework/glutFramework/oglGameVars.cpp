@@ -3,6 +3,7 @@
 #include<iostream>
 #include <string>
 #include <sstream>
+#include <cmath>
 using namespace std;
 
 oglGameVars* oglGameVars::pinstance = 0;// initialize pointer
@@ -86,6 +87,7 @@ void oglGameVars::init()
 	rvbSelectionPix = new oglTexture2D();
 	redPathImg = new oglTexture2D();
 	bluePathImg = new oglTexture2D();
+	rvbHeyYouWithTheFace = new oglTexture2D();
 
 	rvbTile->loadImage("baseTile.png", 128, 128);
 	rvbObstacle->loadImage("obstacle.png", 128, 128);
@@ -101,6 +103,7 @@ void oglGameVars::init()
 	rvbSelectionPix->loadImage("greenPixel.png", 1, 1); 
 	redPathImg->loadImage("rvbRedPath.png", 128, 128);
 	bluePathImg->loadImage("rvbBluePath.png", 128, 128);
+	rvbHeyYouWithTheFace->loadImage("entityTargetEntity.png", 128, 128);
 
 
 	loadFonts();
@@ -230,4 +233,15 @@ void oglGameVars::parseMeIntoRows(vector<std::string*> *storageContainer, std::s
 			}
 		}
 	}
+}
+
+
+double oglGameVars::getDistanceToTarget(double xPos, double yPos, double targetXPos, double targetYPos)
+{
+	double length = abs(xPos - targetXPos);
+	double height = abs(yPos - targetYPos);
+
+	double hypotenuse = sqrt((length * length) + (height * height));
+
+	return hypotenuse;
 }

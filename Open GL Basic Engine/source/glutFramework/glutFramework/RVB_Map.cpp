@@ -478,3 +478,30 @@ bool RVB_Map::isThereAnEntityAt(int xPos, int yPos)
 	}
 	return false;
 }
+
+bool RVB_Map::areThereAnyEnemiesAt(int xPos, int yPos, entityType whatColorIAm)
+{
+	for(int x = 0; x < objectList.size(); x++)
+	{
+		if( (objectList[x]->getXPos() == xPos) &&
+			(objectList[x]->getYPos() == yPos) &&
+			(objectList[x]->getType() != whatColorIAm) )
+		{
+			return true;
+		}
+	}
+	return false;
+}
+bool RVB_Map::areThereAnyFriendsAt(int xPos, int yPos, entityType whatColorIAm)
+{
+	for(int x = 0; x < objectList.size(); x++)
+	{
+		if( (objectList[x]->getXPos() == xPos) &&
+			(objectList[x]->getYPos() == yPos) &&
+			(objectList[x]->getType() == whatColorIAm) )
+		{
+			return true;
+		}
+	}
+	return false;
+}

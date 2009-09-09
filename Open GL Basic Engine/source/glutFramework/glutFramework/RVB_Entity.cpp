@@ -7,8 +7,6 @@
 #define RVBRIFFLE rvbWeapon(20, 12, 1, 1);
 
 
-enum entityState { ATTACKING, TAKING_COVER, MOVING, IDLE, SCANNING };
-
 void RVB_Entity::Update()
 {
 	// Query how long it's been since our last update
@@ -17,64 +15,166 @@ void RVB_Entity::Update()
 	// We want this for time stepping.
 	if(timeSinceLastUpdate > (timeStep*0)) // (timestep == number of seconds)
 	{
-		// DEBUG
-		//cout << "It's been " << (float)(timeStep*1000) << "ms for objType: ";
-		//if(type == RED)			{ cout << "RED" << endl; }
-		//else if(type == BLUE)	{ cout << "BLUE" << endl; } 
-		//else					{ cout << "UNKNOWN" << endl; }
-		
-		
-		//////////////////////////////
-		// Recalculate our path
-		// 
-		
-		// if we have a path
-		if(myPath != NULL)
+		// first we process higher order brainpower!
+		// this will be replaced with something way cooler than simple if/thens
+
+		//enum higherState { CHASING, EVADING, ATTACKMOVE, HIGHERMOVING, HIGHERATTACKING, HIGHERIDLE };
+		myLowerState = IDLE;
+
+		switch(myHigherState)
 		{
-			// if we haven't reached our target position...
-			if(((xPos != targetX) || (yPos != targetY)) && (targetX != -1) && (targetY != -1))
+		case CHASING:
+			// is the selected entity target still at our target spot?
+			//this->myEntityTarget
+			if(myEntityTarget != NULL)
 			{
-				// lets make sure its still valid
-				if(!(myPath->isPathStillValid()))
+				// if not, move our target spot to the entity's location
+				if( (myEntityTarget->getXPos() != targetX) ||
+					(myEntityTarget->getYPos() != targetY))
 				{
-					delete myPath;
-					myPath = new rvbPath(xPos, yPos, targetX, targetY, board->getBoardWidth(), board->getBoardHeight(), board);
-					//myPath->recalcPath(xPos, yPos, targetX, targetY);
+					setTarget(myEntityTarget->getXPos(), myEntityTarget->getYPos());
 				}
-				/*else if(!(myPath->isThereACalculatedPath()))
+				myLowerState = MOVING;
+				
+				// see if our selected entity target is a good guy or a bad guy
+
+				// if a bad guy...
+				if(myEntityTarget->getType() != type)
 				{
-					myPath->recalcPath(xPos, yPos, targetX, targetY);
-				}*/
+					// see if we are in any weapon range of our enemy
+					double distanceToTarget = GameVars->getDistanceToTarget(xPos, yPos, targetX, targetY);
+
+					// for now this will just check weapon 1
+					if(distanceToTarget < myWeapon1->getRange())
+					{
+						// if so, set state to attacking
+						myLowerState = ATTACKING;
+						// and break
+						break;
+					}
+				}
+			}
+			
+			// otherwise set state to moving
+			myLowerState = MOVING;
+			break;
+
+		case EVADING:
+			break;
+
+		case ATTACKMOVE:
+			break;
+
+		case HIGHERMOVING:
+			if(myPath != NULL)
+			{
+				myLowerState = MOVING;
 			}
 			else
 			{
-				delete myPath;
-				myPath = NULL;
+				myLowerState = IDLE;
 			}
+			break;
+
+		case HIGHERATTACKING:
+			break;
+
+		case HIGHERIDLE:
+			break;
+
+		default:
+			// you just lost the game
+			break;
 		}
-		
 
-		//setTarget(targetX, targetY);
 
-		//////////////////////////////
-		if(myPath != NULL)
+		// then we do shit
+		//enum entityState { ATTACKING, TAKING_COVER, MOVING, IDLE, SCANNING };
+		switch(myLowerState)
 		{
-			aStarNode* destNode = NULL;
-			destNode = myPath->advancePathNode();
-			if(destNode != NULL)
-			{
-				if(board->isTileValidMove(destNode->getX(), destNode->getY()))
-				{
-					xPos = destNode->getX();
-					yPos = destNode->getY();
-				}
-			}
+		case ATTACKING:
+			break;
+
+		case TAKING_COVER:
+			break;
+
+		case MOVING:
+			doMove();
+			break;
+
+		case IDLE:
+			break;
+
+		case SCANNING:
+			break;
+
+		default:
+			// you just lost the game
+			break;
 		}
 
-		//////////////////////////////
-		// Log our update
-		timeOfLastUpdate = clock();
 	}
+	//////////////////////////////
+	// Log our update
+	timeOfLastUpdate = clock();
+		
+}
+
+void RVB_Entity::doMove()
+{
+	//////////////////////////////
+	// Recalculate our path
+	// 
+	
+	// if we have a path
+	if(myPath != NULL)
+	{
+		// if we haven't reached our target position...
+		if(((xPos != targetX) || (yPos != targetY)) && (targetX != -1) && (targetY != -1))
+		{
+			// lets make sure its still valid
+			if(!(myPath->isPathStillValid()))
+			{
+				delete myPath;
+				myPath = new rvbPath(xPos, yPos, targetX, targetY, board->getBoardWidth(), board->getBoardHeight(), board);
+				//myPath->recalcPath(xPos, yPos, targetX, targetY);
+			}
+			/*else if(!(myPath->isThereACalculatedPath()))
+			{
+				myPath->recalcPath(xPos, yPos, targetX, targetY);
+			}*/
+		}
+		else
+		{
+			delete myPath;
+			myPath = NULL;
+			targetX = -1;
+			targetY = -1;
+		}
+	}
+	
+
+	//setTarget(targetX, targetY);
+
+	//////////////////////////////
+	if(myPath != NULL)
+	{
+		aStarNode* destNode = NULL;
+		destNode = myPath->advancePathNode();
+		if(destNode != NULL)
+		{
+			if(board->isTileValidMove(destNode->getX(), destNode->getY()))
+			{
+				xPos = destNode->getX();
+				yPos = destNode->getY();
+			}
+		}
+	}
+}
+
+void RVB_Entity::setState(higherState newState)
+{
+	myHigherState = newState;
 }
 	
 void RVB_Entity::Draw(int tileWidth, double scaleFactor, int mapOffsetX, int mapOffsetY)
@@ -104,6 +204,15 @@ void RVB_Entity::Draw(int tileWidth, double scaleFactor, int mapOffsetX, int map
 	if(myPath != NULL)
 	{
 		myPath->drawPath(scaleFactor, mapOffsetX, mapOffsetY, tileWidth, type);
+	}
+
+	// if i have anyone selected, lets draw a little circle around them
+	if(myEntityTarget != NULL)
+	{
+		GameVars->rvbHeyYouWithTheFace->drawImage((int)(tileWidth*scaleFactor),				// Width
+								(int)(tileWidth*scaleFactor),				// Height
+								((myEntityTarget->getXPos()*tileWidth)*scaleFactor)+mapOffsetX,  // X
+								((myEntityTarget->getYPos()*tileWidth)*scaleFactor)+mapOffsetY); // Y
 	}
 }
 
@@ -204,4 +313,16 @@ RVB_Entity::RVB_Entity(entityType newType, int newX, int newY, entityDirection n
 
 	myEntityTarget = NULL;
 
+	myHigherState = HIGHERIDLE;
+	myLowerState = IDLE;
+}
+
+entityType RVB_Entity::getType()
+{
+	return type;
+}
+
+void RVB_Entity::setEnemyTarget(RVB_Entity *newTarget)
+{
+	myEntityTarget = newTarget;
 }

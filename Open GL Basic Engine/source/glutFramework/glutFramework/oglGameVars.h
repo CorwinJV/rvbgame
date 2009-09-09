@@ -106,12 +106,13 @@ public:
 	oglTexture2D*				rvbEntitySelected;
 	oglTexture2D*				rvbEntityTarget;
 	oglTexture2D*				rvbSelectionPix;
+	oglTexture2D*				rvbHeyYouWithTheFace;
 
 	oglTexture2D*				redPathImg;
 	oglTexture2D*				bluePathImg;
-	
 
 
+	double						getDistanceToTarget(double xPos, double yPos, double targetXPos, double targetYPos);
 
 private:
 
