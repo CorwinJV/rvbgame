@@ -274,11 +274,14 @@ void RVB_MainState::processMouseClick(int button, int state, int x, int y)
 					setSelectedEntitiesState(HIGHERMOVING);
 				}
 				// now check to see if there's any enemies at the location
-				if( (currentMap->areThereAnyEnemiesAt(gridPosX, gridPosY, selectedEntityList[0][0]->getType())) ||
-					(currentMap->areThereAnyFriendsAt(gridPosX, gridPosY, selectedEntityList[0][0]->getType())) )
+				if(selectedEntityList->size() > 0)
 				{
-					setSelectedEntitiesEnemyTargets(gridPosX, gridPosY);
-					setSelectedEntitiesState(CHASING);
+					if( (currentMap->areThereAnyEnemiesAt(gridPosX, gridPosY, (*selectedEntityList)[0]->getType())) ||
+						(currentMap->areThereAnyFriendsAt(gridPosX, gridPosY, (*selectedEntityList)[0]->getType())) )
+					{
+						setSelectedEntitiesEnemyTargets(gridPosX, gridPosY);
+						setSelectedEntitiesState(CHASING);
+					}
 				}
 			}
 		}
@@ -341,30 +344,11 @@ void RVB_MainState::processMouseClick(int button, int state, int x, int y)
 			left = min(gridCoordSet1X, gridCoordSet2X);
 			right = max(gridCoordSet1X, gridCoordSet2X);
 
-			/*if(gridCoordSet1X < gridCoordSet2X)
-			{
-				left = gridCoordSet1X;
-				right = gridCoordSet2X;
-			}
-			else
-			{
-				left = gridCoordSet2X;
-				right = gridCoordSet1X;
-			}*/
-
-
 				// The lowest Y of our 2 XY coords becomes "top"
 				// the highest Y of our 2 XY coords becomes "bottom"
-			if(gridCoordSet1Y < gridCoordSet2Y)
-			{
-				top = gridCoordSet1Y;
-				bottom = gridCoordSet2Y;
-			}
-			else
-			{
-				top = gridCoordSet2Y;
-				bottom = gridCoordSet1Y;
-			}
+			top = min(gridCoordSet1Y, gridCoordSet2Y);
+			bottom = max(gridCoordSet1Y, gridCoordSet2Y);
+
 
 			//==============================
 			// Get the information on which 
