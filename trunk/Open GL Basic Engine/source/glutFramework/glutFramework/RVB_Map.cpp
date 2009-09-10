@@ -139,7 +139,77 @@ void RVB_Map::Draw()
 	}	
 
 	drawText();
+
+	// now its time for fog of war
+	vector<vector<double>> myFog;
+
+	int mapWidth = mBoard.size();
+	int mapHeight = mBoard[0].size();
+
+	// first lets fog this bitch up
+	myFog.resize(mapWidth);
+	for(int x = 0; x < mapWidth; x++)
+	{
+		myFog[x].resize(mapHeight);
+		for(int y = 0; y < mapHeight; y++)
+		{
+			if(GameVars->mySide != GOD)
+			{
+				myFog[x][y] = 1.0;
+			}
+			else
+			{
+				myFog[x][y] = 0.0;
+			}
+		}
+	}
 	
+	// now lets go and unfog some areas
+
+	if(GameVars->mySide != GOD)
+	{
+		for(int x = 0; x < mapWidth; x++)
+		{
+			for(int y = 0; y < mapHeight; y++)
+			{
+				// iterate through entity list
+				for(int entX = 0; entX < (int)objectList.size(); entX++)
+				{
+					entityType entityAt = objectList[entX]->getType();
+					
+					if(entityAt == GameVars->mySide)
+					{
+						double distanceToTarget = GameVars->getDistanceToTarget(x, y, objectList[entX]->getXPos(), objectList[entX]->getYPos());
+						if(distanceToTarget <= entityVisionRadius)
+						{
+							myFog[x][y] -= (1.0 * (((entityVisionRadius + 1) - distanceToTarget)) / entityVisionRadius);
+							if(myFog[x][y] < 0)
+							{
+								myFog[x][y] = 0;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// now lets draw the fog!
+	// set fog dimensions
+
+	for(int x = 0; x < mapWidth; x++)
+	{
+		for(int y = 0; y < mapHeight; y++)
+		{
+
+			// now draw it
+			GameVars->fog->drawImageFaded(myFog[x][y],
+											(int)(tileWidth*scaleFactor),			 // Width
+											(int)(tileWidth*scaleFactor),			 // Height
+											((x*tileWidth)*scaleFactor)+mapOffsetX,  // X
+											((y*tileWidth)*scaleFactor)+mapOffsetY); // Y
+		}
+	}	
 }
 
 double RVB_Map::getScale()
@@ -224,13 +294,16 @@ RVB_Entity *RVB_Map::getSelectableEntityAtGridCoord(int gridX, int gridY)
 	if((gridX >= 0) && (gridX < mapWidth) &&
 		(gridY >= 0) && (gridY < mapHeight))
 	{
-		int size = objectList.size();
-		for(int i = 0; i < size; i++)
+		if(objectList.size() > 0)
 		{
-			if((objectList[i]->getXPos() == gridX) &&
-				(objectList[i]->getYPos() == gridY))
+			int size = objectList.size();
+			for(int i = 0; i < size; i++)
 			{
-				entityToReturn = objectList[i];
+				if((objectList[i]->getXPos() == gridX) &&
+					(objectList[i]->getYPos() == gridY))
+				{
+					entityToReturn = objectList[i];
+				}
 			}
 		}
 	}

@@ -30,6 +30,7 @@ public:
 	bool drawImage(int nWidth, int nHeight, int nX, int nY);
 	bool drawImageFaded(double amount);
 	bool drawImageFaded(double amount, int dWidth, int dHeight);
+	bool drawImageFaded(double amount, int dWidth, int dHeight, int nX, int nY);
 	bool oglTexture2D::drawImageSegment(double topLeftX, double topLeftY, 
 										double topRightX, double topRightY,
 										double bottomLeftX, double bottomLeftY, 
@@ -42,7 +43,7 @@ public:
 										double bottomRightX, double bottomRightY, 
 										double fadeAmount, int dWidth, int dHeight);
 
-		bool oglTexture2D::drawImageSegment(double topLeftX, double topLeftY, 
+	bool oglTexture2D::drawImageSegment(double topLeftX, double topLeftY, 
 										double topRightX, double topRightY,
 										double bottomLeftX, double bottomLeftY, 
 										double bottomRightX, double bottomRightY, 

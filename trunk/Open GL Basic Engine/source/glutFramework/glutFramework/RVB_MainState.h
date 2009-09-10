@@ -6,7 +6,6 @@
 #include "RVB_Map.h"
 #include <iostream>
 
-
 class RVB_MainState : public GameState
 {
 public:

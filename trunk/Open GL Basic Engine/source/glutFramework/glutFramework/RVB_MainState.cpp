@@ -8,6 +8,7 @@
 //
 void RVB_MainState::init()
 {
+	GameVars->mySide = RED;
 	//currentMap = new RVB_Map(mapSize, mapSize);
 	currentMap = new RVB_Map(40, 25);
 	currentMap->setScale(.50);
@@ -173,6 +174,27 @@ bool RVB_MainState::Draw()
 		// left border
 		GameVars->rvbSelectionPix->drawImage(selectionBoxPixelW, (bottom - top), left, top);
 	}
+
+	// last but not least, draw the header
+	oglTexture2D* tempImg;
+
+	switch(GameVars->mySide)
+	{
+	case RED:
+		tempImg = GameVars->redActive;
+		break;
+	case BLUE:
+		tempImg = GameVars->blueActive;
+		break;
+	case GOD:
+		tempImg = GameVars->godActive;
+		break;
+	}
+
+	tempImg->drawImage(1024, 64, 0, 0);
+
+	
+
 	return true;
 }
 
@@ -451,6 +473,20 @@ void RVB_MainState::keyboardInput(unsigned char c, int x, int y)
 	case ' ':
 		currentMap->setAllEntityTargets(curMouseX, curMouseY);
 		break;
+	case 'r':
+	case 'R':
+		if(GameVars->mySide == RED)
+		{
+			GameVars->mySide = BLUE;
+		}
+		else if (GameVars->mySide == BLUE)
+		{
+			GameVars->mySide = GOD;
+		}
+		else if (GameVars->mySide == GOD)
+		{
+			GameVars->mySide = RED;
+		}
 	default:
 		break;
 	}
