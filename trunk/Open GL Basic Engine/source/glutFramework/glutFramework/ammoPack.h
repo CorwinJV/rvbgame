@@ -8,13 +8,12 @@ public:
 	ammoPack()
 	{
 		pistolAmmo = 0;
-		rifleAmmo = 0;
 		shotgunAmmo = 0;
+		rifleAmmo = 0;
 	};
 
 	~ammoPack()
 	{
 	};
-
 
 };
