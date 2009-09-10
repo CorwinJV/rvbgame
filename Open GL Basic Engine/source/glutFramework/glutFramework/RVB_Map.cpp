@@ -143,15 +143,17 @@ void RVB_Map::Draw()
 	// now its time for fog of war
 	vector<vector<double>> myFog;
 
+	int uberFactor = 2;
+
 	int mapWidth = mBoard.size();
 	int mapHeight = mBoard[0].size();
 
 	// first lets fog this bitch up
-	myFog.resize(mapWidth);
-	for(int x = 0; x < mapWidth; x++)
+	myFog.resize(mapWidth * uberFactor);
+	for(int x = 0; x < mapWidth * uberFactor; x++)
 	{
-		myFog[x].resize(mapHeight);
-		for(int y = 0; y < mapHeight; y++)
+		myFog[x].resize(mapHeight * uberFactor);
+		for(int y = 0; y < mapHeight * uberFactor; y++)
 		{
 			if(GameVars->mySide != GOD)
 			{
@@ -168,9 +170,9 @@ void RVB_Map::Draw()
 
 	if(GameVars->mySide != GOD)
 	{
-		for(int x = 0; x < mapWidth; x++)
+		for(int x = 0; x < mapWidth * uberFactor; x++)
 		{
-			for(int y = 0; y < mapHeight; y++)
+			for(int y = 0; y < mapHeight * uberFactor; y++)
 			{
 				// iterate through entity list
 				for(int entX = 0; entX < (int)objectList.size(); entX++)
@@ -179,10 +181,11 @@ void RVB_Map::Draw()
 					
 					if(entityAt == GameVars->mySide)
 					{
-						double distanceToTarget = GameVars->getDistanceToTarget(x, y, objectList[entX]->getXPos(), objectList[entX]->getYPos());
-						if(distanceToTarget <= entityVisionRadius)
+						double distanceToTarget = GameVars->getDistanceToTarget(x, y, 
+																				objectList[entX]->getXPos() * uberFactor, objectList[entX]->getYPos() * uberFactor);
+						if(distanceToTarget <= entityVisionRadius* uberFactor)
 						{
-							myFog[x][y] -= (1.0 * (((entityVisionRadius + 1) - distanceToTarget)) / entityVisionRadius);
+							myFog[x][y] -= (1.0/uberFactor * (((entityVisionRadius * uberFactor + 1) - distanceToTarget)) / entityVisionRadius * uberFactor);
 							if(myFog[x][y] < 0)
 							{
 								myFog[x][y] = 0;
@@ -197,17 +200,17 @@ void RVB_Map::Draw()
 	// now lets draw the fog!
 	// set fog dimensions
 
-	for(int x = 0; x < mapWidth; x++)
+	for(int x = 0; x < mapWidth * uberFactor; x++)
 	{
-		for(int y = 0; y < mapHeight; y++)
+		for(int y = 0; y < mapHeight * uberFactor; y++)
 		{
 
 			// now draw it
 			GameVars->fog->drawImageFaded(myFog[x][y],
-											(int)(tileWidth*scaleFactor),			 // Width
-											(int)(tileWidth*scaleFactor),			 // Height
-											((x*tileWidth)*scaleFactor)+mapOffsetX,  // X
-											((y*tileWidth)*scaleFactor)+mapOffsetY); // Y
+											(tileWidth*scaleFactor / uberFactor),			 // Width
+											(tileWidth*scaleFactor / uberFactor),			 // Height
+											((x*tileWidth)*scaleFactor / uberFactor )+mapOffsetX,  // X
+											((y*tileWidth)*scaleFactor / uberFactor )+mapOffsetY); // Y
 		}
 	}	
 }
