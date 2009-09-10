@@ -75,6 +75,7 @@ private:
 	entityState myLowerState;
 
 	void doMove();		// old update loop, now just for moving
+	void performBrainFunction();
 };
 
 

@@ -16,86 +16,7 @@ void RVB_Entity::Update()
 	if(timeSinceLastUpdate > (timeStep*0)) // (timestep == number of seconds)
 	{
 		// first we process higher order brainpower!
-		// this will be replaced with something way cooler than simple if/thens
-
-		//enum higherState { CHASING, EVADING, ATTACKMOVE, HIGHERMOVING, HIGHERATTACKING, HIGHERIDLE };
-		myLowerState = IDLE;
-
-		switch(myHigherState)
-		{
-		case CHASING:
-			// is the selected entity target still at our target spot?
-			//this->myEntityTarget
-			if(myEntityTarget != NULL)
-			{
-				// if not, move our target spot to the entity's location
-				if( (myEntityTarget->getXPos() != targetX) ||
-					(myEntityTarget->getYPos() != targetY))
-				{
-					setTarget(myEntityTarget->getXPos(), myEntityTarget->getYPos());
-				}
-				myLowerState = MOVING;
-				
-				// see if our selected entity target is a good guy or a bad guy
-
-				// if a bad guy...
-				double distanceToTarget = GameVars->getDistanceToTarget(xPos, yPos, targetX, targetY);
-				if(myEntityTarget->getType() != type)
-				{
-					// see if we are in any weapon range of our enemy
-					
-
-					// for now this will just check weapon 1
-					if(distanceToTarget < myWeapon1->getRange())
-					{
-						// if so, set state to attacking
-						myLowerState = ATTACKING;
-						// and break
-						break;
-					}
-				}
-				else
-				{
-					if(distanceToTarget < 2)
-					{
-						myLowerState = IDLE;
-						break;
-					}
-				}
-			}
-			
-			// otherwise set state to moving
-			myLowerState = MOVING;
-			break;
-
-		case EVADING:
-			break;
-
-		case ATTACKMOVE:
-			break;
-
-		case HIGHERMOVING:
-			if(myPath != NULL)
-			{
-				myLowerState = MOVING;
-			}
-			else
-			{
-				myLowerState = IDLE;
-			}
-			break;
-
-		case HIGHERATTACKING:
-			break;
-
-		case HIGHERIDLE:
-			break;
-
-		default:
-			// you just lost the game
-			break;
-		}
-
+		performBrainFunction();
 
 		// then we do shit
 		//enum entityState { ATTACKING, TAKING_COVER, MOVING, IDLE, SCANNING };
@@ -127,6 +48,89 @@ void RVB_Entity::Update()
 	// Log our update
 	timeOfLastUpdate = clock();
 		
+}
+
+void RVB_Entity::performBrainFunction()
+{
+	// this will be replaced with something way cooler than a simple switch statement and if/thens
+
+	//enum higherState { CHASING, EVADING, ATTACKMOVE, HIGHERMOVING, HIGHERATTACKING, HIGHERIDLE };
+	myLowerState = IDLE;
+
+	switch(myHigherState)
+	{
+	case CHASING:
+		// is the selected entity target still at our target spot?
+		//this->myEntityTarget
+		if(myEntityTarget != NULL)
+		{
+			// if not, move our target spot to the entity's location
+			if( (myEntityTarget->getXPos() != targetX) ||
+				(myEntityTarget->getYPos() != targetY))
+			{
+				setTarget(myEntityTarget->getXPos(), myEntityTarget->getYPos());
+			}
+			myLowerState = MOVING;
+			
+			// see if our selected entity target is a good guy or a bad guy
+
+			// if a bad guy...
+			double distanceToTarget = GameVars->getDistanceToTarget(xPos, yPos, targetX, targetY);
+			if(myEntityTarget->getType() != type)
+			{
+				// see if we are in any weapon range of our enemy
+				
+
+				// for now this will just check weapon 1
+				if(distanceToTarget < myWeapon1->getRange())
+				{
+					// if so, set state to attacking
+					myLowerState = ATTACKING;
+					// and break
+					break;
+				}
+			}
+			else
+			{
+				if(distanceToTarget < 2)
+				{
+					myLowerState = IDLE;
+					break;
+				}
+			}
+		}
+		
+		// otherwise set state to moving
+		myLowerState = MOVING;
+		break;
+
+	case EVADING:
+		break;
+
+	case ATTACKMOVE:
+		break;
+
+	case HIGHERMOVING:
+		if(myPath != NULL)
+		{
+			myLowerState = MOVING;
+		}
+		else
+		{
+			myLowerState = IDLE;
+		}
+		break;
+
+	case HIGHERATTACKING:
+		break;
+
+	case HIGHERIDLE:
+		break;
+
+	default:
+		// you just lost the game
+		break;
+	}
 }
 
 void RVB_Entity::doMove()
