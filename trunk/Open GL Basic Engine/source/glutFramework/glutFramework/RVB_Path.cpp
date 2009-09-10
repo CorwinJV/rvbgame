@@ -28,7 +28,6 @@ rvbPath::rvbPath(int startX_n, int startY_n, int endX_n, int endY_n, int width, 
 	{
 		for(int y = 0; y < boardHeight; y++)
 		{
-			//nodeList[x][y] = new aStarNode(x, y, endX, endY);
 			nodeList[x][y] = new aStarNode(x, y, endX, endY, board->isTileValidMove(x, y));
 		}
 	}
@@ -236,10 +235,7 @@ aStarNode* rvbPath::getCurrentPathNode()
 {
 	if(calculatedPath.size() != 0)
 	{
-		if((*iCalcPath) != calculatedPath.back())
-		{
-			return (*iCalcPath);
-		}
+		return (*iCalcPath);
 	}
 	return NULL;
 }

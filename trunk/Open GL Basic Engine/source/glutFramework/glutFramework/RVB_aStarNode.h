@@ -1,6 +1,8 @@
 #ifndef RVB_ASTARNODE_H
 #define RVB_ASTARNODE_H
 #include <stdlib.h>
+#include <iostream>
+using namespace std;
 
 class aStarNode
 {
@@ -14,7 +16,7 @@ private:
 	int myY;						// my Y
 	int endX;						// end tile's x
 	int endY;						// end tile's y
-	double movementCost;			// cost to move into this tile
+	int movementCost;			// cost to move into this tile
 
 public:
 	aStarNode(int myX_n, int myY_n, int endX_n, int endY_n, bool available_n)
@@ -31,7 +33,7 @@ public:
 
 	~aStarNode()
 	{
-
+		
 	}
 
 	void resetSameTarget(bool available_n)
@@ -66,6 +68,7 @@ public:
 			steps = steps_n;
 			hueristicValue = steps + manhattanDistance;
 			available = false;
+			movementCost = (((myX == parent->getX()) || (myY == parent->getY())) ? 10 : 14);
 		}
 		// otherwise do nothing!
 
@@ -90,6 +93,15 @@ public:
 	{
 		return hueristicValue;
 	};
+	
+	int getMovementCost()
+	{
+		cout << "myX: " << myX << endl;
+		cout << "myY: " << myY << endl;
+		cout << "movementCost: " << movementCost << endl;
+		return movementCost;
+	};
+
 	int getX()
 	{
 		return myX;

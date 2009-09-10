@@ -13,7 +13,7 @@ void RVB_Entity::Update()
 	timeSinceLastUpdate = clock() - timeOfLastUpdate;
 
 	// We want this for time stepping.
-	if(timeSinceLastUpdate > (timeStep*0)) // (timestep == number of seconds)
+	if(timeSinceLastUpdate > (timeStep)) // (timestep == number of seconds)
 	{
 		// first we process higher order brainpower!
 		performBrainFunction();
@@ -39,7 +39,6 @@ void RVB_Entity::Update()
 			break;
 
 		default:
-			// you just lost the game
 			break;
 		}
 
@@ -136,51 +135,98 @@ void RVB_Entity::performBrainFunction()
 void RVB_Entity::doMove()
 {
 	//////////////////////////////
+	// Smooth Movement Calcs
+	// 
+	double additionAmmount = defaultMovementIncr;
+	if(myPath != NULL)
+	{ 
+		if(myPath->getCurrentPathNode() != NULL)
+		{
+			if(myPath->getCurrentPathNode()->getMovementCost() != 0)
+			{
+				double mMovementCost =  myPath->getCurrentPathNode()->getMovementCost();
+				additionAmmount = (additionAmmount * (10.0 / mMovementCost));
+			}
+		}
+	} 
+	completionPercentage += additionAmmount;
+	//cout << "completionPercentage: " << completionPercentage << endl;
+	//cout << "additionAmmount: " << additionAmmount << endl;
+
+
+	//////////////////////////////
 	// Recalculate our path
 	// 
 	
 	// if we have a path
 	if(myPath != NULL)
 	{
-		// if we haven't reached our target position...
-		if(((xPos != targetX) || (yPos != targetY)) && (targetX != -1) && (targetY != -1))
+		if(completionPercentage > 1.0)
 		{
-			// lets make sure its still valid
-			if(!(myPath->isPathStillValid()))
+			// if we haven't reached our target position...
+			if(((xPos != targetX) || (yPos != targetY)) && (targetX != -1) && (targetY != -1))
+			{
+				// lets make sure its still valid
+				if(!(myPath->isPathStillValid()))
+				{
+					delete myPath;
+					myPath = new rvbPath(xPos, yPos, targetX, targetY, board->getBoardWidth(), board->getBoardHeight(), board);
+				}
+			}
+			else
 			{
 				delete myPath;
-				myPath = new rvbPath(xPos, yPos, targetX, targetY, board->getBoardWidth(), board->getBoardHeight(), board);
-				//myPath->recalcPath(xPos, yPos, targetX, targetY);
+				myPath = NULL;
+				targetX = -1;
+				targetY = -1;
+				movementSourceNodeX = -1;
+				movementSourceNodeY = -1;
 			}
-			/*else if(!(myPath->isThereACalculatedPath()))
-			{
-				myPath->recalcPath(xPos, yPos, targetX, targetY);
-			}*/
-		}
-		else
-		{
-			delete myPath;
-			myPath = NULL;
-			targetX = -1;
-			targetY = -1;
 		}
 	}
+	else
+	{
+		movementSourceNodeX = -1;
+		movementSourceNodeY = -1;
+	}
+
 	
+	// 	storing source & destination
+	// Set percentage of completion to 0.0 at init or when landing in new spot
+	// When in moving state...
+		// Incr percentage of completion
+		// 
+	// draw
+	// 128 / (percentage of completion)
+	//
 
-	//setTarget(targetX, targetY);
 
+	
 	//////////////////////////////
+	// Smooth Movement weee
+	// 	
 	if(myPath != NULL)
 	{
-		aStarNode* destNode = NULL;
-		destNode = myPath->advancePathNode();
-		if(destNode != NULL)
+		if(completionPercentage > 1.0)
 		{
-			if(board->isTileValidMove(destNode->getX(), destNode->getY()))
+			// Store the current position in the path for reference
+			movementSourceNodeX = myPath->getCurrentPathNode()->getX();
+			movementSourceNodeY = myPath->getCurrentPathNode()->getY();
+
+			// Advance the path node, and set the destination node.
+			aStarNode* destNode = NULL;
+			destNode = myPath->advancePathNode();
+			if(destNode != NULL)
 			{
-				xPos = destNode->getX();
-				yPos = destNode->getY();
+				// Set the entity's position to the new node
+				if(board->isTileValidMove(destNode->getX(), destNode->getY()))
+				{
+					xPos = destNode->getX();
+					yPos = destNode->getY();
+				}
 			}
+			// reset percentageCompletion, we aren't going anywhere yet
+			completionPercentage = 0.0;
 		}
 	}
 }
@@ -208,10 +254,33 @@ void RVB_Entity::Draw(int tileWidth, double scaleFactor, int mapOffsetX, int map
 		break;
 	}
 
-	tempImage->drawImage((int)	(tileWidth*scaleFactor),			 // Width
-								(int)(tileWidth*scaleFactor),			 // Height
-								((xPos*tileWidth)*scaleFactor)+mapOffsetX,  // X
-								((yPos*tileWidth)*scaleFactor)+mapOffsetY); // Y
+	int drawXPos = ((xPos*tileWidth)*scaleFactor)+mapOffsetX;
+	int drawYPos = ((yPos*tileWidth)*scaleFactor)+mapOffsetY;
+	if(myLowerState == MOVING && (movementSourceNodeX != -1 && movementSourceNodeY != -1) && myPath->getCurrentPathNode() != NULL)
+	{
+		double xDiff = movementSourceNodeX - myPath->getCurrentPathNode()->getX();
+		double yDiff = movementSourceNodeY - myPath->getCurrentPathNode()->getY();
+
+		cout << "movementSourceNodeX: " << movementSourceNodeX << endl;
+		cout << "movementSourceNodeY: " << movementSourceNodeY << endl;
+
+		cout << "currentPathNodeX: " << myPath->getCurrentPathNode()->getX() << endl;
+		cout << "currentPathNodeY: " << myPath->getCurrentPathNode()->getY() << endl;
+
+		cout << "xDiff: " << xDiff << endl;
+		cout << "yDiff: " << yDiff << endl;
+		tempImage->drawImage((int)(tileWidth*scaleFactor),			 // Width
+									(int)(tileWidth*scaleFactor),			 // Height
+									(double)drawXPos + (xDiff * ((128.0 * (1.0 - completionPercentage))*scaleFactor)),  // X
+									(double)drawYPos + (yDiff * ((128.0 * (1.0 - completionPercentage))*scaleFactor))); // Y
+	}
+	else
+	{
+		tempImage->drawImage((int)	(tileWidth*scaleFactor),			 // Width
+									(int)(tileWidth*scaleFactor),			 // Height
+									drawXPos,  // X
+									drawYPos); // Y
+	}
 
 	// if i have a path, draw the path
 	if(myPath != NULL)
@@ -277,7 +346,6 @@ void RVB_Entity::setTarget(int newX, int newY)
 		targetX = newX;
 		targetY = newY;
 
-
 		/*if(myPath != NULL)
 		{
 			delete myPath;
@@ -302,7 +370,9 @@ void RVB_Entity::setPosition(int newX, int newY)
 }
 
 RVB_Entity::RVB_Entity(entityType newType, int newX, int newY, entityDirection newDirection, RVB_Map* parentBoard, vector<RVB_Entity*>* boardObjectList)
-:timeOfLastUpdate(0), timeSinceLastUpdate(0), timeStep(0.5)
+	:timeOfLastUpdate(0), timeSinceLastUpdate(0), timeStep(0.5),
+	movementSourceNodeX(-1), movementSourceNodeY(-1), completionPercentage(0.0),
+	defaultMovementIncr(.1)
 {
 	xPos = newX;
 	yPos = newY;
