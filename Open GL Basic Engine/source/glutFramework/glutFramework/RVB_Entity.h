@@ -57,6 +57,13 @@ private:
 	RVB_Map* board;
 	vector<RVB_Entity*>* objectList;
 
+	//=================
+	// Smooth Movement
+	int movementSourceNodeX;
+	int movementSourceNodeY;
+	double completionPercentage;
+	double defaultMovementIncr;
+
 	rvbPath* myPath;
 	RVB_Entity* myEntityTarget;			// this is the entity i am current interested in for whatever reason
 										// maybe i want to kill it, maybe i'm running from it
