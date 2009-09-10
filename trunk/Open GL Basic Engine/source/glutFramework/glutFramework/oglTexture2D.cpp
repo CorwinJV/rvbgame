@@ -208,7 +208,7 @@ bool oglTexture2D::drawImageFaded(double amount, int dWidth, int dHeight)
 	return true;
 }
 
-bool oglTexture2D::drawImageFaded(double amount, int dWidth, int dHeight, int nX, int nY)
+bool oglTexture2D::drawImageFaded(double amount, double dWidth, double dHeight, double nX, double nY)
 {
 	int tmpDX = dX;
 	int tmpDY = dY;
