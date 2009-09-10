@@ -225,6 +225,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\RVB_Bullet.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\RVB_Entity.cpp"
 				>
 			</File>
@@ -332,6 +336,10 @@
 			</File>
 			<File
 				RelativePath=".\RVB_aStarNode.h"
+				>
+			</File>
+			<File
+				RelativePath=".\RVB_Bullet.h"
 				>
 			</File>
 			<File
