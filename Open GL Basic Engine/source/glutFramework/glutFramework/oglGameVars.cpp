@@ -88,6 +88,11 @@ void oglGameVars::init()
 	redPathImg = new oglTexture2D();
 	bluePathImg = new oglTexture2D();
 	rvbHeyYouWithTheFace = new oglTexture2D();
+	redActive = new oglTexture2D();
+	blueActive = new oglTexture2D();
+	godActive = new oglTexture2D();
+	fog = new oglTexture2D();
+
 
 	rvbTile->loadImage("baseTile.png", 128, 128);
 	rvbObstacle->loadImage("obstacle.png", 128, 128);
@@ -104,6 +109,10 @@ void oglGameVars::init()
 	redPathImg->loadImage("rvbRedPath.png", 128, 128);
 	bluePathImg->loadImage("rvbBluePath.png", 128, 128);
 	rvbHeyYouWithTheFace->loadImage("entityTargetEntity.png", 128, 128);
+	redActive->loadImage("rvbRedActive.png", 1024, 64);
+	blueActive->loadImage("rvbBlueActive.png", 1024, 64);
+	godActive->loadImage("rvbGodActive.png", 1024, 64);
+	fog->loadImage("rvbFog.png", 128, 128);
 
 
 	loadFonts();

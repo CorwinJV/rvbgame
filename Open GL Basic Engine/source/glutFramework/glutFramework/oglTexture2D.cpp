@@ -208,6 +208,51 @@ bool oglTexture2D::drawImageFaded(double amount, int dWidth, int dHeight)
 	return true;
 }
 
+bool oglTexture2D::drawImageFaded(double amount, int dWidth, int dHeight, int nX, int nY)
+{
+	int tmpDX = dX;
+	int tmpDY = dY;
+
+	if(dWidth != 0
+		&& dHeight != 0)
+	{
+		dX = dWidth;
+		dY = dHeight;
+	}
+
+	// Bind texture to current context 
+	glBindTexture(GL_TEXTURE_2D, texture); 
+	// Set the alpha
+	//glColor4f(1.0, 1.0, 1.0, 1.0); 
+	glColor4f(amount, amount, amount, amount);
+
+	glPushMatrix();
+		glRotatef(rotationInDeg, 0.0, 0.0, 1.0);
+
+		// Draw texture using a quad 
+		glBegin(GL_POLYGON); 
+			// Top left 
+			glTexCoord2f(0.0, 0.0); 
+			glVertex2i(nX, nY); 
+			// Top right 
+			glTexCoord2f(1.0, 0.0); 
+			glVertex2i(nX + dWidth, nY); 
+			// Bottom right 
+			glTexCoord2f(1.0, 1.0); 
+			glVertex2i(nX + dWidth, nY + dHeight); 
+			// Bottom left 
+			glTexCoord2f(0.0, 1.0); 
+			glVertex2i(nX, nY + dHeight); 
+			// Finish quad drawing 
+		glEnd();
+	glPopMatrix();
+
+	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+	dX = tmpDX;
+	dY = tmpDY;
+	return true;
+}
+
 bool oglTexture2D::drawImageSegment(double topLeftX, double topLeftY, 
 									double topRightX, double topRightY,
 									double bottomLeftX, double bottomLeftY, 

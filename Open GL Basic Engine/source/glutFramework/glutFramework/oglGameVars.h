@@ -14,6 +14,8 @@
 #define GameVars oglGameVars::Instance()
 #define imageSize 100
 
+#define entityVisionRadius 10
+
 using namespace std;
 
 //===========================
@@ -24,7 +26,7 @@ using namespace std;
 // "Design Patterns".
 // - CJV
 
-enum entityType{RED, BLUE};
+enum entityType{RED, BLUE, GOD};
 
 enum marbleUI			// enumerator for the cases where the user selects a piece
 { 
@@ -110,9 +112,15 @@ public:
 
 	oglTexture2D*				redPathImg;
 	oglTexture2D*				bluePathImg;
+	oglTexture2D*				redActive;
+	oglTexture2D*				blueActive;
+	oglTexture2D*				godActive;
+	oglTexture2D*				fog;
+
 
 
 	double						getDistanceToTarget(double xPos, double yPos, double targetXPos, double targetYPos);
+	entityType					mySide;
 
 private:
 
