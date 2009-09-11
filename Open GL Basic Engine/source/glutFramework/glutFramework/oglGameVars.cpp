@@ -92,10 +92,15 @@ void oglGameVars::init()
 	blueActive = new oglTexture2D();
 	godActive = new oglTexture2D();
 	fog = new oglTexture2D();
+	redPixel = new oglTexture2D();
+	greenPixel = new oglTexture2D();
+	yellowPixel = new oglTexture2D();
+	deadIcon = new oglTexture2D();
+	healthBorder = new oglTexture2D();
 	pistolShotImg = new oglTexture2D();
-	shottyShotImg = new oglTexture2D();
 	riffleShotImg = new oglTexture2D();
-	
+	shottyShotImg = new oglTexture2D();
+
 
 	rvbTile->loadImage("baseTile.png", 128, 128);
 	rvbObstacle->loadImage("obstacle.png", 128, 128);
@@ -116,10 +121,15 @@ void oglGameVars::init()
 	blueActive->loadImage("rvbBlueActive.png", 1024, 64);
 	godActive->loadImage("rvbGodActive.png", 1024, 64);
 	fog->loadImage("rvbFog.png", 128, 128);
-	pistolShotImg->loadImage("rvbBulletPink.png", 16, 16);
+	redPixel->loadImage("redPixel.png", 1, 1);
+	greenPixel->loadImage("greenPixel.png", 1, 1);
+	yellowPixel->loadImage("yellowPixel.png", 1, 1);
+	deadIcon->loadImage("rvbEntityDead.png", 128, 128);
+	healthBorder->loadImage("rvbHealthBorder.png", 128, 128);
+	pistolShotImg->loadImage("rvbBulletOrange.png", 16, 16);
+	riffleShotImg->loadImage("rvbBulletYellow.png", 16, 16);
 	shottyShotImg->loadImage("rvbBulletShotgun.png", 8, 8);
-	riffleShotImg->loadImage("rvbBulletOrange.png", 16, 16);
-
+	
 
 	loadFonts();
 }

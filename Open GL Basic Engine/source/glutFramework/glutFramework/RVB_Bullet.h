@@ -2,6 +2,8 @@
 #define RVB_BULLET_H
 
 #include "oglTexture2D.h"
+#include "oglGameVars.h"
+//#include "RVB_Map.h"
 
 enum RVB_BulletType { pistol, shotty, riffle };
 
@@ -21,7 +23,6 @@ private:
 	int		bulletXPos;				// bullet's position on the x-coordinate
 	int		bulletYPos;				// bullet's position on the y-coordinate
 	RVB_BulletType type;			// what kind of bullet is being fired
-	RVB_Map* bulletMap;				// pointer to the map
 	oglTexture2D* bulletImage;		// what picture to use for the bullet
 
 public:
@@ -34,7 +35,7 @@ public:
 	RVB_Bullet();
 	~RVB_Bullet();
 
-	bool draw();
+	bool draw(double scaleFactor);
 	bool update();
 
 	//	setters
@@ -55,4 +56,4 @@ public:
 	bool			getActive();
 	RVB_BulletType	getBulletType();
 };
-#endif		RVB_Bullet
+#endif		RVB_Bullet_H

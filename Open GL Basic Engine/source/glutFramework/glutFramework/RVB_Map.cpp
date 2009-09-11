@@ -209,7 +209,7 @@ void RVB_Map::Draw()
 
 	for (int x = 0; x < tempSize; x++)
 	{
-		bulletList[x]->draw();
+		bulletList[x]->draw(scaleFactor);
 	}
 
 

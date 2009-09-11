@@ -129,6 +129,7 @@ void RVB_Entity::performBrainFunction()
 
 	//enum higherState { CHASING, EVADING, ATTACKMOVE, HIGHERMOVING, HIGHERATTACKING, HIGHERIDLE };
 	myLowerState = IDLE;
+	int scanDelayBy = 5;
 
 	switch(myHigherState)
 	{
@@ -199,14 +200,16 @@ void RVB_Entity::performBrainFunction()
 			}
 			else
 			{
-				if(!scanned)
+				if((!scanned) && (scanDelay > scanDelayBy))
 				{
+					scanDelay = 0;
 					scanned = true;
 					myLowerState = SCANNING;
 				}
 				else
 				{
 					scanned = false;
+					scanDelay++;
 					if(myPath != NULL)
 					{
 						myLowerState = MOVING;
@@ -221,13 +224,15 @@ void RVB_Entity::performBrainFunction()
 		}
 		else
 		{
-			if(!scanned)
+			if((!scanned) && (scanDelay > scanDelayBy))
 			{
+				scanDelay = 0;
 				scanned = true;
 				myLowerState = SCANNING;
 			}
 			else
 			{
+				scanDelay++;
 				scanned = false;
 				if(myPath != NULL)
 				{
@@ -438,6 +443,26 @@ void RVB_Entity::Draw(int tileWidth, double scaleFactor, int mapOffsetX, int map
 								((myEntityTarget->getXPos()*tileWidth)*scaleFactor)+mapOffsetX,  // X
 								((myEntityTarget->getYPos()*tileWidth)*scaleFactor)+mapOffsetY); // Y
 	}
+
+	// now lets draw a health bar
+	// if health <= 0... they be dead
+	if(health <= 0)
+	{
+		// draw dead icon
+		GameVars->deadIcon->drawImage((int)(tileWidth*scaleFactor),			 // Width
+									(int)(tileWidth*scaleFactor),			 // Height
+									(double)(xPos * tileWidth * scaleFactor) + mapOffsetX,  // X
+									(double)(yPos * tileWidth * scaleFactor) + mapOffsetY); // Y
+	}
+	else
+	{
+		// otherwise, draw a health bar
+		GameVars->healthBorder->drawImage((int)(tileWidth*scaleFactor),			 // Width
+									(int)(tileWidth*scaleFactor),			 // Height
+									(double)(xPos * tileWidth * scaleFactor) + mapOffsetX,  // X
+									(double)(yPos * tileWidth * scaleFactor) + mapOffsetY); // Y
+		
+	}
 }
 
 void RVB_Entity::generatePath()
@@ -546,6 +571,7 @@ RVB_Entity::RVB_Entity(entityType newType, int newX, int newY, entityDirection n
 	myHigherState = HIGHERIDLE;
 	myLowerState = IDLE;
 	scanned = false;
+	scanDelay = 0;
 }
 
 entityType RVB_Entity::getType()
