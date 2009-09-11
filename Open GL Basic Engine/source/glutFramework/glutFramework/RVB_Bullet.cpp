@@ -6,10 +6,26 @@ RVB_Bullet::RVB_Bullet(double damage_n, double xSpeed_n, double ySpeed_n, double
 	damage = damage_n;
 	xSpeed = xSpeed_n;
 	ySpeed = ySpeed_n;
-	active = true;
 	speed = speed_n;
 	range = range_n;
 	type = type_n;
+	active = true;
+
+
+	switch(type)
+	{
+	case pistol:
+		//bulletImage = GameVars->pistolShotImg;
+		break;
+	case shotty:
+		//bulletImage = GameVars->shottyShotImg;
+		break;
+	case riffle:
+		//bulletImage = GameVars->riffleShotImg;
+		break;
+	default:
+		break;
+	}
 }
 
 RVB_Bullet::RVB_Bullet()
@@ -18,6 +34,24 @@ RVB_Bullet::RVB_Bullet()
 
 RVB_Bullet::~RVB_Bullet()
 {
+}
+
+bool	RVB_Bullet::draw()
+{
+	if(bulletMap != NULL)
+	{
+		//double scaleFactor;
+		//(*bulletMap).getScale();
+		// why doesnt this below work?
+		// scaleFactor = bulletMap->getScale();
+	}
+
+	return true;
+}
+
+bool	RVB_Bullet::update()
+{
+	return true;
 }
 
 //	calculates the damage done by the bullet based off of the distance it has traveled
@@ -89,6 +123,11 @@ double	RVB_Bullet::getSpeed()
 double	RVB_Bullet::getRange()
 {
 	return range;
+}
+
+bool	RVB_Bullet::getActive()
+{
+	return active;
 }
 
 RVB_BulletType	RVB_Bullet::getBulletType()

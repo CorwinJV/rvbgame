@@ -84,7 +84,7 @@ public: // Public Interface
 	bool areThereAnyEnemiesAt(int xPos, int yPos, entityType whatColorIAm);
 	bool areThereAnyFriendsAt(int xPos, int yPos, entityType whatColorIAm);
 	void updateBullets();
-	void shotFired(RVB_Bullet* newBullet);
+	void makeBullet(RVB_Bullet* newBullet);
 };
 
 
