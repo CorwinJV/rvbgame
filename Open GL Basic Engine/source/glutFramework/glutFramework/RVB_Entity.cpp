@@ -24,6 +24,13 @@ void RVB_Entity::Update()
 		{
 		case ATTACKING:
 			//cout << "bang, bang, BAAAAAAAANG, you dead?" << endl;
+			
+			if(myEntityTarget != NULL)
+			{
+				fireAtX = myEntityTarget->getXPos();
+				fireAtY = myEntityTarget->getYPos();
+			}
+			
 			board->makeBullet(currentWeapon->shotFired(xPos, yPos, fireAtX, fireAtY));
 			break;
 
@@ -408,14 +415,14 @@ void RVB_Entity::Draw(int tileWidth, double scaleFactor, int mapOffsetX, int map
 		double xDiff = movementSourceNodeX - myPath->getCurrentPathNode()->getX();
 		double yDiff = movementSourceNodeY - myPath->getCurrentPathNode()->getY();
 
-		cout << "movementSourceNodeX: " << movementSourceNodeX << endl;
-		cout << "movementSourceNodeY: " << movementSourceNodeY << endl;
+		//cout << "movementSourceNodeX: " << movementSourceNodeX << endl;
+		//cout << "movementSourceNodeY: " << movementSourceNodeY << endl;
 
-		cout << "currentPathNodeX: " << myPath->getCurrentPathNode()->getX() << endl;
-		cout << "currentPathNodeY: " << myPath->getCurrentPathNode()->getY() << endl;
+		//cout << "currentPathNodeX: " << myPath->getCurrentPathNode()->getX() << endl;
+		//cout << "currentPathNodeY: " << myPath->getCurrentPathNode()->getY() << endl;
 
-		cout << "xDiff: " << xDiff << endl;
-		cout << "yDiff: " << yDiff << endl;
+		//cout << "xDiff: " << xDiff << endl;
+		//cout << "yDiff: " << yDiff << endl;
 		tempImage->drawImage((int)(tileWidth*scaleFactor),			 // Width
 									(int)(tileWidth*scaleFactor),			 // Height
 									(double)drawXPos + (xDiff * ((128.0 * (1.0 - completionPercentage))*scaleFactor)),  // X

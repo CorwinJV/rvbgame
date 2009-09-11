@@ -73,6 +73,8 @@ void RVB_Map::Update()
 		objectList[xi]->Update();
 	}	
 	recalcBoard();
+
+	updateBullets();
 }
 
 //====================
@@ -209,7 +211,7 @@ void RVB_Map::Draw()
 
 	for (int x = 0; x < tempSize; x++)
 	{
-		bulletList[x]->draw(scaleFactor);
+		bulletList[x]->draw(scaleFactor, tileWidth, mapOffsetX, mapOffsetY);
 	}
 
 
@@ -614,6 +616,12 @@ void RVB_Map::updateBullets()
 			bulletList.erase(rItr.base() - 1);
 			break;
 		}
+	}
+
+	int size = bulletList.size();
+	for (int x = 0; x < size; x++)
+	{
+		bulletList[x]->update();
 	}
 }
 

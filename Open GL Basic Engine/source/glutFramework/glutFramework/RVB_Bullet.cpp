@@ -1,8 +1,10 @@
 #include "RVB_Bullet.h"
 
 //	contructors and destructor
-RVB_Bullet::RVB_Bullet(double damage_n, double xSpeed_n, double ySpeed_n, double speed_n, double range_n, RVB_BulletType type_n)
+RVB_Bullet::RVB_Bullet(double xPos, double yPos, double damage_n, double xSpeed_n, double ySpeed_n, double speed_n, double range_n, RVB_BulletType type_n)
 {
+	bulletXPos = xPos;
+	bulletYPos = yPos;
 	damage = damage_n;
 	xSpeed = xSpeed_n;
 	ySpeed = ySpeed_n;
@@ -35,15 +37,27 @@ RVB_Bullet::~RVB_Bullet()
 {
 }
 
-bool RVB_Bullet::draw(double scaleFactor)
+bool RVB_Bullet::draw(double scaleFactor, double tileWidth, int mapOffsetX, int mapOffsetY)
 {
-	
+	if(type == shotty)
+	{
+		bulletImage->drawImage(8, 8,(bulletXPos * scaleFactor * tileWidth) + mapOffsetX, (bulletYPos * scaleFactor * tileWidth) + mapOffsetY);
+	}
+	else
+	{
+		bulletImage->drawImage(16, 16, (bulletXPos * scaleFactor * tileWidth) + mapOffsetX, (bulletYPos * scaleFactor * tileWidth) + mapOffsetY);
+		cout << "Bullet xPos = " << bulletXPos << " yPos = " << bulletYPos << endl;
+		cout << "Bullet xSpeed = " << xSpeed << " ySpeed = " << ySpeed << endl;
+	}
 
 	return true;
 }
 
 bool	RVB_Bullet::update()
 {
+	bulletXPos += xSpeed;
+	bulletYPos += ySpeed;
+
 	return true;
 }
 
@@ -51,7 +65,7 @@ bool	RVB_Bullet::update()
 //	and the initial damage it is capable of doing
 void	RVB_Bullet::calcDamage(double damage_n, double range_n, double distanceTraveled_n)
 {
-	double		damageTemp = damage_n;
+	double	damageTemp = damage_n;
 	double	distanceTemp = distanceTraveled_n;
 	double  rangeTemp = range_n;
 
