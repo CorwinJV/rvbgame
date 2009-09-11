@@ -5,7 +5,6 @@
 
 enum RVB_WeaponType { WEAPON_PISTOL, WEAPON_SHOTTY, WEAPON_RIFFLE };
 
-
 class rvbWeapon
 {
 private:

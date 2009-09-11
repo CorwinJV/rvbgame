@@ -91,6 +91,7 @@ private:
 	void doEnemyScan();
 
 	bool scanned;
+	int scanDelay;
 	bool canStillSeeEnemy();
 };
 

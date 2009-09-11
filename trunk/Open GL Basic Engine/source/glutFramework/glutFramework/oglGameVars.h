@@ -117,9 +117,18 @@ public:
 	oglTexture2D*				godActive;
 	oglTexture2D*				fog;
 
+	oglTexture2D*				redPixel;
+	oglTexture2D*				greenPixel;
+	oglTexture2D*				yellowPixel;
+	oglTexture2D*				healthBorder;
+
+	oglTexture2D*				deadIcon;
+
 	oglTexture2D*				pistolShotImg;
-	oglTexture2D*				shottyShotImg;
 	oglTexture2D*				riffleShotImg;
+	oglTexture2D*				shottyShotImg;
+
+
 
 	double						getDistanceToTarget(double xPos, double yPos, double targetXPos, double targetYPos);
 	entityType					mySide;

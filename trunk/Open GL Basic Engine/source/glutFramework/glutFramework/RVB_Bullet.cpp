@@ -11,17 +11,16 @@ RVB_Bullet::RVB_Bullet(double damage_n, double xSpeed_n, double ySpeed_n, double
 	type = type_n;
 	active = true;
 
-
 	switch(type)
 	{
 	case pistol:
-		//bulletImage = GameVars->pistolShotImg;
+		bulletImage = GameVars->pistolShotImg;
 		break;
 	case shotty:
-		//bulletImage = GameVars->shottyShotImg;
+		bulletImage = GameVars->shottyShotImg;
 		break;
 	case riffle:
-		//bulletImage = GameVars->riffleShotImg;
+		bulletImage = GameVars->riffleShotImg;
 		break;
 	default:
 		break;
@@ -36,15 +35,9 @@ RVB_Bullet::~RVB_Bullet()
 {
 }
 
-bool	RVB_Bullet::draw()
+bool RVB_Bullet::draw(double scaleFactor)
 {
-	if(bulletMap != NULL)
-	{
-		//double scaleFactor;
-		//(*bulletMap).getScale();
-		// why doesnt this below work?
-		// scaleFactor = bulletMap->getScale();
-	}
+	
 
 	return true;
 }

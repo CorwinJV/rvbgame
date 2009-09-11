@@ -7,6 +7,8 @@
 #include <vector>
 using namespace std;
 
+//class RVB_Bullet;
+
 enum mapDirection { UP, DOWN, LEFT, RIGHT };
 
 class RVB_Map
