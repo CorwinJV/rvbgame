@@ -105,10 +105,13 @@ int rvbWeapon::reload(int ammoLeft)
 
 RVB_Bullet* rvbWeapon::shotFired(int xPos, int yPos, int targetX, int targetY)
 {
-	double tempXSpeed = targetX - xPos;
-	double tempYSpeed = targetY - yPos;
+	double tempX = targetX - xPos;
+	double tempY = targetY - yPos;
 
-	RVB_Bullet* tempBullet = new RVB_Bullet(damage, tempXSpeed, tempYSpeed, 2 /*speed*/, range, (RVB_BulletType)type);
+	double tempXSpeed = ( tempX / (tempX + tempY) );
+	double tempYSpeed = ( tempY / (tempY + tempX) );
+
+	RVB_Bullet* tempBullet = new RVB_Bullet(xPos, yPos, damage, tempXSpeed, tempYSpeed, 2 /*speed*/, range, (RVB_BulletType)type);
 
 	return tempBullet;
 }

@@ -20,8 +20,8 @@ private:
 	double	speed;					// how fast is the bullet traveling?
 	double	range;					// how far can the bullet travel?
 	bool	active;					// is the bullet active?
-	int		bulletXPos;				// bullet's position on the x-coordinate
-	int		bulletYPos;				// bullet's position on the y-coordinate
+	double	bulletXPos;				// bullet's position on the x-coordinate
+	double	bulletYPos;				// bullet's position on the y-coordinate
 	RVB_BulletType type;			// what kind of bullet is being fired
 	oglTexture2D* bulletImage;		// what picture to use for the bullet
 
@@ -31,11 +31,11 @@ public:
 	void	calcDamage(double damage_n, double range_n, double distanceTraveled_n);
 
 	// constructor and destructor
-	RVB_Bullet(double damage_n, double xSpeed, double ySpeed, double speed_n, double range_n, RVB_BulletType type_n);
+	RVB_Bullet(double xPos, double yPos, double damage_n, double xSpeed, double ySpeed, double speed_n, double range_n, RVB_BulletType type_n);
 	RVB_Bullet();
 	~RVB_Bullet();
 
-	bool draw(double scaleFactor);
+	bool draw(double scaleFactor, double tileWidth, int mapOffsetX, int mapOffsetY);
 	bool update();
 
 	//	setters
