@@ -170,7 +170,7 @@ void RVB_Map::Draw()
 
 	if(GameVars->mySide != GOD)
 	{
-		
+		double visionCalc = entityVisionRadius + 1;
 		// iterate through entity list
 		for(int entX = 0; entX < (int)objectList.size(); entX++)
 		{
@@ -181,17 +181,17 @@ void RVB_Map::Draw()
 				int entityX = objectList[entX]->getXPos();
 				int entityY = objectList[entX]->getYPos();
 
-				for(int x = (entityX * uberFactor) - (entityVisionRadius * uberFactor); x < (entityX * uberFactor) + (entityVisionRadius* uberFactor); x++)
-				{
-					for(int y = (entityY * uberFactor) - (entityVisionRadius* uberFactor); y < (entityY * uberFactor) + (entityVisionRadius* uberFactor); y++)
+				for(int x = (entityX * uberFactor) - (visionCalc * uberFactor); x < (entityX * uberFactor) + ((visionCalc + 1) * uberFactor); x++)
+				{ 
+					for(int y = (entityY * uberFactor) - (visionCalc * uberFactor); y < (entityY * uberFactor) + ((visionCalc + 1) * uberFactor); y++)
 					{
 						if((x >= 0) && (x < mapWidth * uberFactor) && 
 						   (y >= 0) && (y < mapHeight * uberFactor))
 						{
-							double distanceToTarget = GameVars->getDistanceToTarget(x, y, entityX * uberFactor, entityY * uberFactor);
-							if(distanceToTarget <= entityVisionRadius* uberFactor)
+							double distanceToTarget = GameVars->getDistanceToTarget(x, y, (entityX + 0.25) * uberFactor, (entityY + 0.25) * uberFactor);
+							if(distanceToTarget <= visionCalc * uberFactor)
 							{
-								myFog[x][y] -= (1.0/uberFactor * (((entityVisionRadius * uberFactor + 1) - distanceToTarget)) / entityVisionRadius * uberFactor);
+								myFog[x][y] -= (1.0/uberFactor * (((visionCalc * uberFactor + 1) - distanceToTarget)) / visionCalc * uberFactor);
 								if(myFog[x][y] < 0)
 								{
 									myFog[x][y] = 0;

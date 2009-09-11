@@ -281,6 +281,9 @@ void RVB_MainState::processMouseClick(int button, int state, int x, int y)
 		else if(modifiers & GLUT_ACTIVE_CTRL)
 		{
 			// Fire on selected target
+			// attack move for now...
+			setSelectedEntitiesTargets(gridPosX, gridPosY);
+			setSelectedEntitiesState(ATTACKMOVE);			
 		}
 		else // No modifiers
 		{
@@ -487,6 +490,10 @@ void RVB_MainState::keyboardInput(unsigned char c, int x, int y)
 		{
 			GameVars->mySide = RED;
 		}
+	/*case 'g':
+		setSelectedEntitiesTargets(gridPosX, gridPosY);
+		setSelectedEntitiesState(ATTACKMOVE);	*/	
+		break;
 	default:
 		break;
 	}

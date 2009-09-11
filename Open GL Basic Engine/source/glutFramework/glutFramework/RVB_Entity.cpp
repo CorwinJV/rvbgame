@@ -36,6 +36,7 @@ void RVB_Entity::Update()
 			break;
 
 		case SCANNING:
+			doEnemyScan();
 			break;
 
 		default:
@@ -46,8 +47,79 @@ void RVB_Entity::Update()
 	//////////////////////////////
 	// Log our update
 	timeOfLastUpdate = clock();
-		
 }
+
+void RVB_Entity::doEnemyScan()
+{
+	int numEntities = (*objectList).size();
+
+	// find the closest enemy to myself
+	double closestDistance = 100000000000;
+	for(int x = 0; x < numEntities; x++)
+	{
+		if((*objectList)[x]->getType() != type)
+		{
+			// we've found an enemy!, lets check its distance
+			int enemyX = (*objectList)[x]->getXPos();
+			int enemyY = (*objectList)[x]->getYPos();
+			double distanceToTarget = GameVars->getDistanceToTarget(xPos, yPos, enemyX, enemyY);
+			if(distanceToTarget < closestDistance)
+			{
+				// we have found the closest enemy, lets see if we can see him...
+				for(int innerX = 0; innerX < numEntities; innerX++)
+				{
+					if((*objectList)[innerX]->getType() == type)
+					{
+						int friendlyX = (*objectList)[innerX]->getXPos();
+						int friendlyY = (*objectList)[innerX]->getYPos();
+						double distanceFriendlyToEnemy = GameVars->getDistanceToTarget(friendlyX, friendlyY, enemyX, enemyY);
+						// we've found a friendly, lets see if its within vision radius of the enemy
+						if(distanceFriendlyToEnemy <= entityVisionRadius)
+						{
+							//cout << "found an enemy that's close and visible" << endl;
+							// ok now we have the closest enemy so far and its within a friendly entity's vision radius
+							// *********************************************
+							// RIGHT HERE IS WHERE LINE OF SIGHT GOES, FOR NOW WE IGNORE IT
+							// *********************************************
+							myEntityTarget = board->getSelectableEntityAtGridCoord(enemyX, enemyY);
+							closestDistance = distanceToTarget;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+bool RVB_Entity::canStillSeeEnemy()
+{
+	int enemyX = myEntityTarget->getXPos();
+	int enemyY = myEntityTarget->getYPos();
+	int numEntities = (*objectList).size();
+
+	for(int innerX = 0; innerX < numEntities; innerX++)
+	{
+		if((*objectList)[innerX]->getType() == type)
+		{
+			int friendlyX = (*objectList)[innerX]->getXPos();
+			int friendlyY = (*objectList)[innerX]->getYPos();
+			double distanceFriendlyToEnemy = GameVars->getDistanceToTarget(friendlyX, friendlyY, enemyX, enemyY);
+			// we've found a friendly, lets see if its within vision radius of the enemy
+			if(distanceFriendlyToEnemy <= entityVisionRadius)
+			{
+			//	cout << "found an enemy that's close and visible" << endl;
+				// ok now we have the closest enemy so far and its within a friendly entity's vision radius
+				// *********************************************
+				// RIGHT HERE IS WHERE LINE OF SIGHT GOES, FOR NOW WE IGNORE IT
+				// *********************************************
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+
 
 void RVB_Entity::performBrainFunction()
 {
@@ -81,7 +153,7 @@ void RVB_Entity::performBrainFunction()
 				
 
 				// for now this will just check weapon 1
-				if(distanceToTarget < myWeapon1->getRange())
+				if(distanceToTarget < currentWeapon->getRange())
 				{
 					// if so, set state to attacking
 					myLowerState = ATTACKING;
@@ -107,15 +179,80 @@ void RVB_Entity::performBrainFunction()
 		break;
 
 	case ATTACKMOVE:
+
+		// we have two possibilites, we either have a target or we don't have a target
+		
+		// if we don't have a target
+		// and we haven't scanned
+		// start scanning
+		// otherwise, move
+
+
+		// if we have a target, start attacking it, 
+		if((myEntityTarget != NULL) && (canStillSeeEnemy()))
+		{
+			if(GameVars->getDistanceToTarget(xPos, yPos, myEntityTarget->getXPos(), myEntityTarget->getYPos()) <= currentWeapon->getRange())
+			{
+				myLowerState = ATTACKING;
+			}
+			else
+			{
+				if(!scanned)
+				{
+					scanned = true;
+					myLowerState = SCANNING;
+				}
+				else
+				{
+					scanned = false;
+					if(myPath != NULL)
+					{
+						myLowerState = MOVING;
+					}
+					else
+					{
+						myHigherState = HIGHERIDLE;
+						myLowerState = IDLE;
+					}
+				}
+			}
+		}
+		else
+		{
+			if(!scanned)
+			{
+				scanned = true;
+				myLowerState = SCANNING;
+			}
+			else
+			{
+				scanned = false;
+				if(myPath != NULL)
+				{
+					myLowerState = MOVING;
+				}
+				else
+				{
+					myHigherState = HIGHERIDLE;
+					myLowerState = IDLE;
+				}
+			}
+		}
 		break;
 
 	case HIGHERMOVING:
+		if(myEntityTarget != NULL)
+		{
+			myEntityTarget = NULL;
+		}
+
 		if(myPath != NULL)
 		{
 			myLowerState = MOVING;
 		}
 		else
 		{
+			myHigherState = HIGHERIDLE;
 			myLowerState = IDLE;
 		}
 		break;
@@ -131,6 +268,9 @@ void RVB_Entity::performBrainFunction()
 		break;
 	}
 }
+
+
+
 
 void RVB_Entity::doMove()
 {
@@ -398,6 +538,7 @@ RVB_Entity::RVB_Entity(entityType newType, int newX, int newY, entityDirection n
 
 	myHigherState = HIGHERIDLE;
 	myLowerState = IDLE;
+	scanned = false;
 }
 
 entityType RVB_Entity::getType()
