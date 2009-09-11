@@ -250,6 +250,24 @@ void RVB_MainState::setSelectedEntitiesEnemyTargets(int tX, int tY)
 	}
 }
 
+void RVB_MainState::hurtSelectedEntities()
+{
+	vector<RVB_Entity*>::iterator itr = selectedEntityList->begin();
+	for(; itr != selectedEntityList->end(); itr++)
+	{
+		(*itr)->applyDamage(5);
+	}
+}
+
+void RVB_MainState::healSelectedEntities()
+{
+	vector<RVB_Entity*>::iterator itr = selectedEntityList->begin();
+	for(; itr != selectedEntityList->end(); itr++)
+	{
+		(*itr)->setHealth(5);
+	}
+}
+
 //======================
 // Mouse & Keyboard 
 //
@@ -490,9 +508,11 @@ void RVB_MainState::keyboardInput(unsigned char c, int x, int y)
 		{
 			GameVars->mySide = RED;
 		}
-	/*case 'g':
-		setSelectedEntitiesTargets(gridPosX, gridPosY);
-		setSelectedEntitiesState(ATTACKMOVE);	*/	
+	case 'g':
+		hurtSelectedEntities();
+		break;
+	case 'h':
+		healSelectedEntities();
 		break;
 	default:
 		break;

@@ -44,6 +44,9 @@ public:
 	void processMouse(int x, int y);
 	void processMouseClick(int button, int state, int x, int y);
 	void keyboardInput(unsigned char c, int x, int y);
+
+	void hurtSelectedEntities();
+	void healSelectedEntities();
 	
 };
 

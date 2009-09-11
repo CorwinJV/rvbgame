@@ -138,7 +138,7 @@ void RVB_Map::Draw()
 	for(int xi = 0; xi < tempLimit; xi++)
 	{
 		objectList[xi]->Draw(tileWidth, scaleFactor, mapOffsetX, mapOffsetY);
-	}	
+	}
 
 	drawText();
 

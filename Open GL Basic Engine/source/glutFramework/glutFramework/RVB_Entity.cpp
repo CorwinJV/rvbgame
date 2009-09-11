@@ -451,7 +451,6 @@ void RVB_Entity::Draw(int tileWidth, double scaleFactor, int mapOffsetX, int map
 								((myEntityTarget->getYPos()*tileWidth)*scaleFactor)+mapOffsetY); // Y
 	}
 
-	// now lets draw a health bar
 	// if health <= 0... they be dead
 	if(health <= 0)
 	{
@@ -463,7 +462,35 @@ void RVB_Entity::Draw(int tileWidth, double scaleFactor, int mapOffsetX, int map
 	}
 	else
 	{
-		// otherwise, draw a health bar
+		// draw a health bar
+		double doubleHealth = (double)health;
+
+		double barWidth = 89 * ((double)health / 100);
+		double barHeight = 8;
+		double barOffsetX = 19 * scaleFactor;
+		double barOffsetY = 8 * scaleFactor;
+
+		double redFade = 1;
+		//double yellowFade = ((double)health*2) < 1 ? (double)health : 1;
+		double greenFade = (double)health/100;
+
+
+		// now lets draw our little colored bars
+		GameVars->redPixel->drawImageFaded(redFade, barWidth * scaleFactor, barHeight * scaleFactor,
+									(double)(xPos * tileWidth * scaleFactor) + mapOffsetX + barOffsetX,  // X
+									(double)(yPos * tileWidth * scaleFactor) + mapOffsetY + barOffsetY); // Y
+
+		//GameVars->yellowPixel->drawImageFaded(yellowFade, barWidth * scaleFactor, barHeight * scaleFactor,
+		//							(double)(xPos * tileWidth * scaleFactor) + mapOffsetX + barOffsetX,  // X
+		//							(double)(yPos * tileWidth * scaleFactor) + mapOffsetY + barOffsetY); // Y
+
+		GameVars->greenPixel->drawImageFaded(greenFade, barWidth * scaleFactor, barHeight * scaleFactor,
+									(double)(xPos * tileWidth * scaleFactor) + mapOffsetX + barOffsetX,  // X
+									(double)(yPos * tileWidth * scaleFactor) + mapOffsetY + barOffsetY); // Y
+
+
+
+		// draw a nice border for the health bar
 		GameVars->healthBorder->drawImage((int)(tileWidth*scaleFactor),			 // Width
 									(int)(tileWidth*scaleFactor),			 // Height
 									(double)(xPos * tileWidth * scaleFactor) + mapOffsetX,  // X
@@ -606,9 +633,9 @@ void RVB_Entity::setHealth(int health_n)
 void RVB_Entity::applyDamage(int damage_n)
 {
 	health -= damage_n;
-
-	if(health < 1)
+	if((health <= 0) && (myHigherState != DEAD))
 	{
+		health = 0;
 		myHigherState = DEAD;
 	}
 }
