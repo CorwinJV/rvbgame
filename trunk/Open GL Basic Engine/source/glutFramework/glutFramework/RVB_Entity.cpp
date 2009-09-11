@@ -24,7 +24,7 @@ void RVB_Entity::Update()
 		{
 		case ATTACKING:
 			//cout << "bang, bang, BAAAAAAAANG, you dead?" << endl;
-
+			board->makeBullet(currentWeapon->shotFired(xPos, yPos, fireAtX, fireAtY));
 			break;
 
 		case TAKING_COVER:

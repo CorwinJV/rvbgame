@@ -204,6 +204,15 @@ void RVB_Map::Draw()
 		}
 	}
 
+	// finally we draws us some bullets yo!
+	int tempSize = bulletList.size();
+
+	for (int x = 0; x < tempSize; x++)
+	{
+		bulletList[x]->draw();
+	}
+
+
 	// now lets draw the fog!
 	// set fog dimensions
 
@@ -220,6 +229,8 @@ void RVB_Map::Draw()
 											((y*tileWidth)*scaleFactor / uberFactor )+mapOffsetY); // Y
 		}
 	}	
+
+
 }
 
 double RVB_Map::getScale()
@@ -585,4 +596,29 @@ bool RVB_Map::areThereAnyFriendsAt(int xPos, int yPos, entityType whatColorIAm)
 		}
 	}
 	return false;
+}
+
+void RVB_Map::updateBullets()
+{
+	// setup a reverse iterator
+	vector<RVB_Bullet*>::reverse_iterator rItr = bulletList.rbegin();
+
+	// iterate through the list of bullets
+	for(; rItr != bulletList.rend(); rItr++)
+	{
+		// if any of the bullets are no longer active, 
+		if((*rItr)->getActive() == false)
+		{
+			// remove them from the list
+			delete(*rItr);
+			bulletList.erase(rItr.base() - 1);
+			break;
+		}
+	}
+}
+
+void RVB_Map::makeBullet(RVB_Bullet *newBullet)
+{
+	// add the new bullet that was just passed in to the vector
+	bulletList.push_back(newBullet);
 }

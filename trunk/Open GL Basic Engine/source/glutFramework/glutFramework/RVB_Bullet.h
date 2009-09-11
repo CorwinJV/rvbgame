@@ -52,6 +52,7 @@ public:
 	double			getSpeed();
 	double			getDirecion();
 	double			getRange();
+	bool			getActive();
 	RVB_BulletType	getBulletType();
 };
 #endif		RVB_Bullet
