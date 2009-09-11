@@ -83,6 +83,10 @@ private:
 
 	void doMove();		// old update loop, now just for moving
 	void performBrainFunction();
+	void doEnemyScan();
+
+	bool scanned;
+	bool canStillSeeEnemy();
 };
 
 
