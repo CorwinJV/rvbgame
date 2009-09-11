@@ -1,10 +1,10 @@
 #include "RVB_entity.h" 
 #include "RVB_Map.h"
 
-//		FUN NAME  rvbWeapon(dmg, range, clip, ammo)
-#define RVBPISTOL rvbWeapon(10, 6, 10, 10);
-#define RVBSHOTTY rvbWeapon(30, 3, 4, 4);
-#define RVBRIFFLE rvbWeapon(20, 12, 1, 1);
+//		FUN NAME  rvbWeapon(dmg, range, clip, ammo, type)
+#define RVBPISTOL rvbWeapon(10, 6, 10, 10, WEAPON_PISTOL);
+#define RVBSHOTTY rvbWeapon(30, 3, 4, 4, WEAPON_SHOTTY);
+#define RVBRIFFLE rvbWeapon(20, 12, 1, 1, WEAPON_RIFFLE);
 
 
 void RVB_Entity::Update()
@@ -23,6 +23,8 @@ void RVB_Entity::Update()
 		switch(myLowerState)
 		{
 		case ATTACKING:
+			//cout << "bang, bang, BAAAAAAAANG, you dead?" << endl;
+
 			break;
 
 		case TAKING_COVER:
@@ -470,6 +472,11 @@ int RVB_Entity::getTargetY()
 	return targetY;
 }
 
+int RVB_Entity::getHealth()
+{
+	return health;
+}
+
 void RVB_Entity::clearTarget()
 {
 	targetX = -1;
@@ -549,4 +556,26 @@ entityType RVB_Entity::getType()
 void RVB_Entity::setEnemyTarget(RVB_Entity *newTarget)
 {
 	myEntityTarget = newTarget;
+}
+
+void RVB_Entity::setHealth(int health_n)
+{
+	// add the amount of health sent in, by a spawn or health pack
+	health += health_n;
+
+	// make sure we aren't above full health
+	if(health > 100)
+	{
+		health = 100;
+	}
+}
+
+void RVB_Entity::applyDamage(int damage_n)
+{
+	health -= damage_n;
+
+	if(health < 1)
+	{
+		myHigherState = DEAD;
+	}
 }
