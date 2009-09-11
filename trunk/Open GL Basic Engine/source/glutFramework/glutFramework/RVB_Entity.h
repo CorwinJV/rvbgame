@@ -12,7 +12,7 @@ using namespace std; // syphilis
 enum entityDirection{ NORTH, NORTHEAST, EAST, SOUTHEAST, SOUTH, SOUTHWEST, WEST, NORTHWEST };
 
 enum entityState { ATTACKING, TAKING_COVER, MOVING, IDLE, SCANNING };
-enum higherState { CHASING, EVADING, ATTACKMOVE, HIGHERMOVING, HIGHERATTACKING, HIGHERIDLE };
+enum higherState { CHASING, EVADING, ATTACKMOVE, HIGHERMOVING, HIGHERATTACKING, HIGHERIDLE, DEAD };
 
 // circular dependancies require circular referencing and circular declarations
 class RVB_Map;
@@ -25,22 +25,27 @@ public:
 	//RVB_Entity();
 	RVB_Entity(entityType newType, int newX, int newY, entityDirection newDirection, RVB_Map* parentBoard, vector<RVB_Entity*>* boardObjectList);
 	~RVB_Entity();
-
-	entityType getType();
+	
 	void Update();
 	void Draw(int tileWidth, double scaleFactor, int mapOffsetX, int mapOffsetY);
 	void generatePath();
+	void applyDamage(int damage_n);
+	void clearTarget();
+
+	// setters and getters
 	int getXPos();
 	int getYPos();
 	int getTargetX();
 	int getTargetY();
-	void clearTarget();
+	int getHealth();
+	entityType getType();
+	
 	void setTarget(int newX, int newY);
 	void setPosition(int newX, int newY);
-	void setState(higherState newState);		// this is so the player (us) can give the entities commands weather they like it or not
+	void setState(higherState newState);		// this is so the player (us) can give the entities commands whether they like it or not
 	void setEnemyTarget(RVB_Entity *newTarget);
-
-
+	void setHealth(int health_n);
+	
 private:
 	int xPos;
 	int yPos;
@@ -69,8 +74,8 @@ private:
 										// maybe i want to kill it, maybe i'm running from it
 										// maybe i just saw it and we want to be friends
 
-	double fireAtX;		// the x/y coords for the tile i am firing at
-	double fireAtY;		// who knows or cares if anything is inside of it
+	double fireAtX;				// the x/y coords for the tile i am firing at
+	double fireAtY;				// who knows or cares if anything is inside of it
 
 	ammoPack myAmmoPack;
 

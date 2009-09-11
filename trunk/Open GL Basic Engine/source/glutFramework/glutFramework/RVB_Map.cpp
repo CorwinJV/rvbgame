@@ -454,10 +454,6 @@ void RVB_Map::recalcBoard()
 	currentTileWidth = tileWidth * scaleFactor;
 	currentTileHeight = tileHeight * scaleFactor;
 
-	// now that we know how big the dimensions are, find the middle of them
-	halfHeight = currentTileHeight / 2;
-	halfWidth  = currentTileWidth  / 2;
-
 	// determine the new offsets
 	mapOffsetX = ((screenWidth / 2) - (currentTileWidth * cameraCenterX));
 	mapOffsetY = ((screenHeight / 2) - (currentTileHeight * cameraCenterY));

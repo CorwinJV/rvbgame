@@ -15,12 +15,13 @@ rvbWeapon::rvbWeapon()
 	std::cout << "If you see this, someone done fucked up." << std::endl;
 }
 
-rvbWeapon::rvbWeapon(int damage_n, int range_n, int clipSize_n, int clipAmmo_n)
+rvbWeapon::rvbWeapon(int damage_n, int range_n, int clipSize_n, int clipAmmo_n, RVB_WeaponType type_n)
 {
 	damage = damage_n;
 	range = range_n;
 	clipSize = clipSize_n;
 	clipAmmo = clipAmmo_n;
+	type = type_n;
 
 	closeRange = range/3;
 	mediumRange = 2*closeRange;
@@ -100,4 +101,14 @@ int rvbWeapon::reload(int ammoLeft)
 		}
 	}
 	return ammoPool;
+}
+
+RVB_Bullet* rvbWeapon::shotFired(int xPos, int yPos, int targetX, int targetY)
+{
+	double tempXSpeed = targetX - xPos;
+	double tempYSpeed = targetY - yPos;
+
+	RVB_Bullet* tempBullet = new RVB_Bullet(damage, tempXSpeed, tempYSpeed, 2 /*speed*/, range, (RVB_BulletType)type);
+
+	return tempBullet;
 }
