@@ -1,10 +1,10 @@
 #include "RVB_entity.h" 
 #include "RVB_Map.h"
 
-//		FUN NAME  rvbWeapon(dmg, range, clip, ammo, type)
-#define RVBPISTOL rvbWeapon(10, 6, 10, 10, WEAPON_PISTOL);
-#define RVBSHOTTY rvbWeapon(30, 3, 4, 4, WEAPON_SHOTTY);
-#define RVBRIFFLE rvbWeapon(20, 12, 1, 1, WEAPON_RIFFLE);
+//		FUN NAME  rvbWeapon(dmg, range, clip, ammo, type, firing rate)
+#define RVBPISTOL rvbWeapon(10, 6, 10, 10, WEAPON_PISTOL, 1);
+#define RVBSHOTTY rvbWeapon(30, 3, 4, 4, WEAPON_SHOTTY, 3);
+#define RVBRIFFLE rvbWeapon(20, 12, 1, 1, WEAPON_RIFFLE, 5);
 
 
 void RVB_Entity::Update()
@@ -25,13 +25,76 @@ void RVB_Entity::Update()
 		case ATTACKING:
 			//cout << "bang, bang, BAAAAAAAANG, you dead?" << endl;
 			
+			// if we're trying to fire at something that isn't an entity
 			if(myEntityTarget != NULL)
 			{
 				fireAtX = myEntityTarget->getXPos();
 				fireAtY = myEntityTarget->getYPos();
 			}
 			
-			board->makeBullet(currentWeapon->shotFired(xPos, yPos, fireAtX, fireAtY));
+			// see if the firing rate of the gun we're using will let us fire again
+			if(timeSinceLastUpdate > currentWeapon->getFireRate())
+			{
+				// see how many bullets we have left in the clip
+				bulletsLeft = currentWeapon->getAmmoLeftInClip();
+
+				// if we have bullets left to shoot
+				if(bulletsLeft > 0)
+				{
+					// then fire the shot, deduct one from the ammo and set it as the new amount
+					board->makeBullet(currentWeapon->shotFired(xPos, yPos, fireAtX, fireAtY));
+					bulletsLeft -= 1;
+					currentWeapon->setAmmoLeftInClip(bulletsLeft);
+				}
+				//otherwise try to reload
+				else
+				{
+					// reset the reload ammo to 0
+					reloadAmmo = 0;
+
+					// see what kind of gun we're using
+					switch(currentWeapon->getType())
+					{
+					case WEAPON_PISTOL:
+						reloadAmmo = myAmmoPack.pistolAmmo;
+						break;
+					case WEAPON_SHOTTY:
+						reloadAmmo = myAmmoPack.shotgunAmmo;
+						break;
+					case WEAPON_RIFFLE:
+						reloadAmmo = myAmmoPack.rifleAmmo;
+						break;
+					default:
+						cout << "something is broke, we returned a type of gun that doesnt exist in attacking state" << endl;
+						break;
+					}
+					
+					// if we have ammo, then reload
+					if(reloadAmmo > 0)
+					{
+						// send in whatever amount of ammo we have and what kind of gun we're using
+						// **************************
+						// ** the second parameter is hardcoded as 0 now, as we're only going to let the 
+						// ** entities reload when their clip is empty
+						// **************************
+						currentWeapon->reload(reloadAmmo, 0, currentWeapon->getType());
+					}
+					else // well we have no more bullets, so lets go ahead and switch weapons
+					{
+						// first see if we're using weapon 1
+						if(currentWeapon->getType() == myWeapon1->getType())
+						{
+							// if so switch to weapon 2
+							currentWeapon = myWeapon2;
+						}
+						else
+						{
+							// otherwise we were using weapon 2, switch to weapon 1
+							currentWeapon = myWeapon1;
+						}
+					}
+				}
+			}
 			break;
 
 		case TAKING_COVER:
@@ -442,15 +505,6 @@ void RVB_Entity::Draw(int tileWidth, double scaleFactor, int mapOffsetX, int map
 		myPath->drawPath(scaleFactor, mapOffsetX, mapOffsetY, tileWidth, type);
 	}
 
-	// if i have anyone selected, lets draw a little circle around them
-	if(myEntityTarget != NULL)
-	{
-		GameVars->rvbHeyYouWithTheFace->drawImage((int)(tileWidth*scaleFactor),				// Width
-								(int)(tileWidth*scaleFactor),				// Height
-								((myEntityTarget->getXPos()*tileWidth)*scaleFactor)+mapOffsetX,  // X
-								((myEntityTarget->getYPos()*tileWidth)*scaleFactor)+mapOffsetY); // Y
-	}
-
 	// if health <= 0... they be dead
 	if(health <= 0)
 	{
@@ -499,6 +553,18 @@ void RVB_Entity::Draw(int tileWidth, double scaleFactor, int mapOffsetX, int map
 	}
 }
 
+void RVB_Entity::drawEntityTarget(int tileWidth, double scaleFactor, int mapOffsetX, int mapOffsetY)
+{
+	// if i have anyone selected, lets draw a little circle around them
+	if(myEntityTarget != NULL)
+	{
+		GameVars->rvbHeyYouWithTheFace->drawImage((int)(tileWidth*scaleFactor),				// Width
+								(int)(tileWidth*scaleFactor),				// Height
+								((myEntityTarget->getXPos()*tileWidth)*scaleFactor)+mapOffsetX,  // X
+								((myEntityTarget->getYPos()*tileWidth)*scaleFactor)+mapOffsetY); // Y
+	}
+}
+
 void RVB_Entity::generatePath()
 {
 
@@ -543,6 +609,34 @@ void RVB_Entity::clearTarget()
 
 	delete myPath;
 	myPath = NULL;
+}
+
+void RVB_Entity::pickUpAmmo(RVB_WeaponType ammoType, int ammoAmt_n)
+{
+	int ammoAmt = ammoAmt_n;
+
+	// make sure we sent in a positive number
+	if(ammoAmt < 0)
+	{
+		ammoAmt = 0;
+	}
+
+	// see what type of ammo has been sent in and add it to the cache
+	switch(ammoType)
+	{
+	case WEAPON_PISTOL:
+		myAmmoPack.pistolAmmo += ammoAmt;
+		break;
+	case WEAPON_SHOTTY:
+		myAmmoPack.shotgunAmmo += ammoAmt;
+		break;
+	case WEAPON_RIFFLE:
+		myAmmoPack.rifleAmmo += ammoAmt;
+		break;
+	default:
+		cout << "you sent in an invalid weapon type in RVB_Entity::pickUpAmmo" << endl;
+		break;
+	}
 }
 
 void RVB_Entity::setTarget(int newX, int newY)
@@ -632,9 +726,13 @@ void RVB_Entity::setHealth(int health_n)
 
 void RVB_Entity::applyDamage(int damage_n)
 {
+	// subtract the damage from the enitities health
 	health -= damage_n;
+
+	// if the health drops below 0, and the entity isn't already dead
 	if((health <= 0) && (myHigherState != DEAD))
 	{
+		// set their state to dead
 		health = 0;
 		myHigherState = DEAD;
 	}

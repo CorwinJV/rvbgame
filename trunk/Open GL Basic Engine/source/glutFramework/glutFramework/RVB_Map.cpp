@@ -133,15 +133,29 @@ void RVB_Map::Draw()
 		}
 	}
 
-	// now lets tell all objects in the board to draw themselves!
+	drawText();	
+
+	// finally we draws us some bullets yo!
+	int tempSize = bulletList.size();
+
+	for (int x = 0; x < tempSize; x++)
+	{
+		bulletList[x]->draw(scaleFactor, tileWidth, mapOffsetX, mapOffsetY);
+	}
+}
+
+void RVB_Map::drawEntities(int tileWidth, double scaleFactor, int mapOffsetX, int mapOffsetY)
+{
 	int tempLimit = objectList.size();
+
 	for(int xi = 0; xi < tempLimit; xi++)
 	{
 		objectList[xi]->Draw(tileWidth, scaleFactor, mapOffsetX, mapOffsetY);
 	}
+}
 
-	drawText();
-
+void RVB_Map::drawFog(int tileWidth, double scaleFactor, int mapOffsetX, int mapOffsetY)
+{
 	// now its time for fog of war
 	vector<vector<double>> myFog;
 
@@ -167,7 +181,7 @@ void RVB_Map::Draw()
 			}
 		}
 	}
-	
+
 	// now lets go and unfog some areas
 
 	if(GameVars->mySide != GOD)
@@ -205,16 +219,6 @@ void RVB_Map::Draw()
 			}
 		}
 	}
-
-	// finally we draws us some bullets yo!
-	int tempSize = bulletList.size();
-
-	for (int x = 0; x < tempSize; x++)
-	{
-		bulletList[x]->draw(scaleFactor, tileWidth, mapOffsetX, mapOffsetY);
-	}
-
-
 	// now lets draw the fog!
 	// set fog dimensions
 
@@ -231,8 +235,6 @@ void RVB_Map::Draw()
 											((y*tileWidth)*scaleFactor / uberFactor )+mapOffsetY); // Y
 		}
 	}	
-
-
 }
 
 double RVB_Map::getScale()
@@ -434,7 +436,7 @@ void RVB_Map::pan(mapDirection direction)
 		break;
 	}
 
-	cout << "Camera X is " << cameraCenterX << " camera Y is " << cameraCenterY << endl;
+	//cout << "Camera X is " << cameraCenterX << " camera Y is " << cameraCenterY << endl;
 
 	if(cameraCenterX < 0)
 	{
@@ -481,7 +483,7 @@ void RVB_Map::zoomIn()
 	{
 		scaleFactor = 1;	
 	}
-	cout << scaleFactor << endl;
+//	cout << scaleFactor << endl;
 }
 
 void RVB_Map::zoomOut()
@@ -493,7 +495,7 @@ void RVB_Map::zoomOut()
 	{
 		scaleFactor = 0.2;
 	}
-	cout << scaleFactor << endl;
+	//cout << scaleFactor << endl;
 }
 
 RVB_Entity* RVB_Map::cycleEntityDown(RVB_Entity* selectedEntity)
@@ -618,6 +620,8 @@ void RVB_Map::updateBullets()
 		}
 	}
 
+	// this is returning a garbage number, even though the correct number of bullets is contained in it
+	// and its correctly iterating through the for loop below...
 	int size = bulletList.size();
 	for (int x = 0; x < size; x++)
 	{

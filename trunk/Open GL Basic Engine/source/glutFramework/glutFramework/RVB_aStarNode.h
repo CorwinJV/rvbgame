@@ -96,9 +96,9 @@ public:
 	
 	int getMovementCost()
 	{
-		cout << "myX: " << myX << endl;
-		cout << "myY: " << myY << endl;
-		cout << "movementCost: " << movementCost << endl;
+		//cout << "myX: " << myX << endl;
+		//cout << "myY: " << myY << endl;
+		//cout << "movementCost: " << movementCost << endl;
 		return movementCost;
 	};
 

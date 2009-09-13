@@ -108,8 +108,24 @@ bool RVB_MainState::Draw()
 	int mapOffsetX = currentMap->getOffsetX();
 	int mapOffsetY = currentMap->getOffsetY();
 
-	// if we have something selected, draw it selected
+	// draw targetted entities by currently selected entities
 	vector<RVB_Entity*>::iterator itr = selectedEntityList->begin();
+	for(;itr != selectedEntityList->end(); itr++)
+	{
+		if((*itr) != NULL)
+		{
+			(*itr)->drawEntityTarget(tileWidth, scaleFactor, mapOffsetX, mapOffsetY);
+		}
+	}
+
+	// now draw all entities
+	currentMap->drawEntities(tileWidth, scaleFactor, mapOffsetX, mapOffsetY);
+
+	// then some fog
+	currentMap->drawFog(tileWidth, scaleFactor, mapOffsetX, mapOffsetY);
+
+	// if we have something selected, draw it selected
+	itr = selectedEntityList->begin();
 	for(;itr != selectedEntityList->end(); itr++)
 	{
 		if((*itr) != NULL)
@@ -122,7 +138,7 @@ bool RVB_MainState::Draw()
 													((xPos*tileWidth)*scaleFactor)+mapOffsetX,  // X
 													((yPos*tileWidth)*scaleFactor)+mapOffsetY); // Y
 
-			// if the entity has a target, lets draw that too
+			// if the entity has a move target, lets draw that too
 			if((*itr)->getTargetX() != -1)
 			{
 				int targetX = (*itr)->getTargetX();
@@ -134,6 +150,9 @@ bool RVB_MainState::Draw()
 			}
 		}
 	}
+
+	////////////////// below here is UI stuff that gets drawn on top of the fog, anything that should be fogged up is before here..
+
 
 	//===============================
 	// Multi-Select Selection box 
