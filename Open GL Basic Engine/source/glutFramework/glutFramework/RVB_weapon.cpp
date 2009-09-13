@@ -15,13 +15,14 @@ rvbWeapon::rvbWeapon()
 	std::cout << "If you see this, someone done fucked up." << std::endl;
 }
 
-rvbWeapon::rvbWeapon(int damage_n, int range_n, int clipSize_n, int clipAmmo_n, RVB_WeaponType type_n)
+rvbWeapon::rvbWeapon(int damage_n, int range_n, int clipSize_n, int clipAmmo_n, RVB_WeaponType type_n, int fireRate)
 {
 	damage = damage_n;
 	range = range_n;
 	clipSize = clipSize_n;
 	clipAmmo = clipAmmo_n;
 	type = type_n;
+	firingRate = fireRate;
 
 	closeRange = range/3;
 	mediumRange = 2*closeRange;
@@ -43,6 +44,11 @@ int rvbWeapon::getDamage()
 int rvbWeapon::getRange()					
 {
 	return range;
+}
+
+int rvbWeapon::getFireRate()
+{
+	return firingRate;
 }
 
 // pass in the distance you are trying to fire at, it returns how accurate this is
@@ -82,10 +88,38 @@ int rvbWeapon::getAmmoLeftInClip()
 	return clipAmmo;
 }
 
+RVB_WeaponType rvbWeapon::getType()
+{
+	return type;
+}
+
+void rvbWeapon::setAmmoLeftInClip(int ammoLeft)
+{
+	clipAmmo = ammoLeft;
+}
+
 // you tell it how much ammo you have on you, it returns how much ammo you have left after reloading the clip
-int rvbWeapon::reload(int ammoLeft)
+int rvbWeapon::reload(int ammoLeft, int ammoInClip, RVB_WeaponType type_n)
 {
 	int ammoPool = ammoLeft;
+	RVB_WeaponType whatKindaGun = type_n;
+
+	// depending on which gun we're using, set the appropriate clip size
+	switch(whatKindaGun)
+	{
+	case WEAPON_PISTOL:
+		clipSize = 10;
+		break;
+	case WEAPON_SHOTTY:
+		clipSize = 4;
+		break;
+	case WEAPON_RIFFLE:
+		clipSize = 1;
+		break;
+	default:
+		cout << "in the reload function in rvbweapon, you passed in a gun that doesnt exist" << endl;
+	}
+
 
 	if(clipAmmo < clipSize)
 	{
@@ -105,11 +139,23 @@ int rvbWeapon::reload(int ammoLeft)
 
 RVB_Bullet* rvbWeapon::shotFired(int xPos, int yPos, int targetX, int targetY)
 {
-	double tempX = targetX - xPos;
-	double tempY = targetY - yPos;
+	// this function needs to be tweaked to account for firing at enemies to the left of you
+	double tempX = abs(targetX - xPos);
+	double tempY = abs(targetY - yPos);
 
 	double tempXSpeed = ( tempX / (tempX + tempY) );
 	double tempYSpeed = ( tempY / (tempY + tempX) );
+
+	// if the target you're firing at is to the left of you, set the fire to go in reverse
+	if(targetX < xPos)
+	{
+		tempXSpeed *= -1;
+	}
+
+	if(targetY < yPos)
+	{
+		tempYSpeed *= -1;
+	}
 
 	RVB_Bullet* tempBullet = new RVB_Bullet(xPos, yPos, damage, tempXSpeed, tempYSpeed, 2 /*speed*/, range, (RVB_BulletType)type);
 

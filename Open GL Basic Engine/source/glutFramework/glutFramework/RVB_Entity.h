@@ -28,9 +28,11 @@ public:
 	
 	void Update();
 	void Draw(int tileWidth, double scaleFactor, int mapOffsetX, int mapOffsetY);
+	void drawEntityTarget(int tileWidth, double scaleFactor, int mapOffsetX, int mapOffsetY);
 	void generatePath();
 	void applyDamage(int damage_n);
 	void clearTarget();
+	void pickUpAmmo(RVB_WeaponType ammoType, int ammoAmt_n);
 
 	// setters and getters
 	int getXPos();
@@ -74,14 +76,18 @@ private:
 										// maybe i want to kill it, maybe i'm running from it
 										// maybe i just saw it and we want to be friends
 
-	double fireAtX;				// the x/y coords for the tile i am firing at
-	double fireAtY;				// who knows or cares if anything is inside of it
+	double fireAtX;						// the x/y coords for the tile i am firing at
+	double fireAtY;						// who knows or cares if anything is inside of it
 
+	// ammo variables
 	ammoPack myAmmoPack;
+	int reloadAmmo;
+	int bulletsLeft;
 
-	rvbWeapon *myWeapon1;
-	rvbWeapon *myWeapon2;
-	rvbWeapon *currentWeapon;
+	// weapon variables
+	rvbWeapon *myWeapon1;				// first weapon you pickup/start with
+	rvbWeapon *myWeapon2;				// second weapon you pickup/start with
+	rvbWeapon *currentWeapon;			// weapon you are currently using
 
 	higherState myHigherState;
 	entityState myLowerState;

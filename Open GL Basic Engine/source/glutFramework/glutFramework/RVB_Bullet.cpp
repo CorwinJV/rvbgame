@@ -3,6 +3,7 @@
 //	contructors and destructor
 RVB_Bullet::RVB_Bullet(double xPos, double yPos, double damage_n, double xSpeed_n, double ySpeed_n, double speed_n, double range_n, RVB_BulletType type_n)
 {
+	// inherit the values passed in
 	bulletXPos = xPos;
 	bulletYPos = yPos;
 	damage = damage_n;
@@ -11,8 +12,12 @@ RVB_Bullet::RVB_Bullet(double xPos, double yPos, double damage_n, double xSpeed_
 	speed = speed_n;
 	range = range_n;
 	type = type_n;
-	active = true;
 
+	// set the bullet to active and its distance traveled to 0
+	active = true;
+	distanceTraveled = 0;
+
+	// set the image type for which gun is shooting it
 	switch(type)
 	{
 	case pistol:
@@ -46,8 +51,8 @@ bool RVB_Bullet::draw(double scaleFactor, double tileWidth, int mapOffsetX, int 
 	else
 	{
 		bulletImage->drawImage(16, 16, (bulletXPos * scaleFactor * tileWidth) + mapOffsetX, (bulletYPos * scaleFactor * tileWidth) + mapOffsetY);
-		cout << "Bullet xPos = " << bulletXPos << " yPos = " << bulletYPos << endl;
-		cout << "Bullet xSpeed = " << xSpeed << " ySpeed = " << ySpeed << endl;
+		//cout << "Bullet xPos = " << bulletXPos << " yPos = " << bulletYPos << endl;
+		//cout << "Bullet xSpeed = " << xSpeed << " ySpeed = " << ySpeed << endl;
 	}
 
 	return true;
@@ -55,8 +60,20 @@ bool RVB_Bullet::draw(double scaleFactor, double tileWidth, int mapOffsetX, int 
 
 bool	RVB_Bullet::update()
 {
+	// update/move the bullet along its x and y coordinates
 	bulletXPos += xSpeed;
 	bulletYPos += ySpeed;
+
+	// check the distance traveled against absolute values of 
+	// x and ySpeed in the case that they are negative numbers
+	distanceTraveled += (abs(xSpeed) + abs(ySpeed)); 
+
+	// see if the bullet has traveled to its range
+	if(distanceTraveled >= range)
+	{
+		// if so deactive it
+		active = false;
+	}
 
 	return true;
 }
