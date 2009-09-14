@@ -43,7 +43,7 @@ public:
 	// and what kind of gun you're using it returns how much ammo you have left after reloading the clip
 	int reload(int ammoLeft, int ammoInClip, RVB_WeaponType type_n);		
 
-	RVB_Bullet* shotFired(double xPos, double yPos, double targetX, double targetY);
+	RVB_Bullet* shotFired(int xPos, int yPos, int targetX, int targetY);
 };
 
 

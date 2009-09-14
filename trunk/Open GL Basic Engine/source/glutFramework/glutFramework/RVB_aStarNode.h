@@ -2,7 +2,6 @@
 #define RVB_ASTARNODE_H
 #include <stdlib.h>
 #include <iostream>
-#include "oglGameVars.h"
 using namespace std;
 
 class aStarNode
@@ -64,7 +63,7 @@ public:
 		// if its available, go ahead and set parent
 		if(available)
 		{
-			manhattanDistance = GameVars->dAbs(myX - endX) + GameVars->dAbs(myY - endY);
+			manhattanDistance = abs(myX - endX) + abs(myY - endY);
 			parent = parentNode;
 			steps = steps_n;
 			hueristicValue = steps + manhattanDistance;

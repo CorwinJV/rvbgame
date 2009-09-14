@@ -42,25 +42,7 @@ void RVB_Entity::Update()
 				if(bulletsLeft > 0)
 				{
 					// then fire the shot, deduct one from the ammo and set it as the new amount
-					if(!currentWeapon->getType() == WEAPON_SHOTTY)
-					{
-						board->makeBullet(currentWeapon->shotFired(xPos, yPos, fireAtX, fireAtY));
-					}
-					else
-					{
-						board->makeBullet(currentWeapon->shotFired(xPos, yPos, (rand() / 32768.0) - 0.5 + fireAtX, 
-																			   (rand() / 32768.0) - 0.5 + fireAtY) );
-						board->makeBullet(currentWeapon->shotFired(xPos, yPos, (rand() / 32768.0) - 0.5 + fireAtX, 
-																			   (rand() / 32768.0) - 0.5 + fireAtY) );
-						board->makeBullet(currentWeapon->shotFired(xPos, yPos, (rand() / 32768.0) - 0.5 + fireAtX, 
-																			   (rand() / 32768.0) - 0.5 + fireAtY) );
-						board->makeBullet(currentWeapon->shotFired(xPos, yPos, (rand() / 32768.0) - 0.5 + fireAtX, 
-																			   (rand() / 32768.0) - 0.5 + fireAtY) );
-						board->makeBullet(currentWeapon->shotFired(xPos, yPos, (rand() / 32768.0) - 0.5 + fireAtX, 
-																			   (rand() / 32768.0) - 0.5 + fireAtY) );
-						
-					}
-
+					board->makeBullet(currentWeapon->shotFired(xPos, yPos, fireAtX, fireAtY));
 					bulletsLeft -= 1;
 					currentWeapon->setAmmoLeftInClip(bulletsLeft);
 				}
@@ -523,6 +505,15 @@ void RVB_Entity::Draw(int tileWidth, double scaleFactor, int mapOffsetX, int map
 		myPath->drawPath(scaleFactor, mapOffsetX, mapOffsetY, tileWidth, type);
 	}
 
+	// if i have anyone selected, lets draw a little circle around them
+	if(myEntityTarget != NULL)
+	{
+		GameVars->rvbHeyYouWithTheFace->drawImage((int)(tileWidth*scaleFactor),				// Width
+								(int)(tileWidth*scaleFactor),				// Height
+								((myEntityTarget->getXPos()*tileWidth)*scaleFactor)+mapOffsetX,  // X
+								((myEntityTarget->getYPos()*tileWidth)*scaleFactor)+mapOffsetY); // Y
+	}
+
 	// if health <= 0... they be dead
 	if(health <= 0)
 	{
@@ -568,18 +559,6 @@ void RVB_Entity::Draw(int tileWidth, double scaleFactor, int mapOffsetX, int map
 									(double)(xPos * tileWidth * scaleFactor) + mapOffsetX,  // X
 									(double)(yPos * tileWidth * scaleFactor) + mapOffsetY); // Y
 		
-	}
-}
-
-void RVB_Entity::drawEntityTarget(int tileWidth, double scaleFactor, int mapOffsetX, int mapOffsetY)
-{
-	// if i have anyone selected, lets draw a little circle around them
-	if(myEntityTarget != NULL)
-	{
-		GameVars->rvbHeyYouWithTheFace->drawImage((int)(tileWidth*scaleFactor),				// Width
-								(int)(tileWidth*scaleFactor),				// Height
-								((myEntityTarget->getXPos()*tileWidth)*scaleFactor)+mapOffsetX,  // X
-								((myEntityTarget->getYPos()*tileWidth)*scaleFactor)+mapOffsetY); // Y
 	}
 }
 
@@ -706,7 +685,7 @@ RVB_Entity::RVB_Entity(entityType newType, int newX, int newY, entityDirection n
 
 	myAmmoPack.pistolAmmo = 0;
 	myAmmoPack.rifleAmmo = 0;
-	myAmmoPack.shotgunAmmo = 1000;
+	myAmmoPack.shotgunAmmo = 0;
 	
 	myWeapon1 = new RVBSHOTTY;
 	myWeapon2 = new RVBRIFFLE;

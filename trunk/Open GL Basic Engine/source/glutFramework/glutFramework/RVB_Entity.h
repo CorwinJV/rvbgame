@@ -28,7 +28,6 @@ public:
 	
 	void Update();
 	void Draw(int tileWidth, double scaleFactor, int mapOffsetX, int mapOffsetY);
-	void drawEntityTarget(int tileWidth, double scaleFactor, int mapOffsetX, int mapOffsetY);
 	void generatePath();
 	void applyDamage(int damage_n);
 	void clearTarget();
