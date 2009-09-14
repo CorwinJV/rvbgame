@@ -46,11 +46,11 @@ bool RVB_Bullet::draw(double scaleFactor, double tileWidth, int mapOffsetX, int 
 {
 	if(type == shotty)
 	{
-		bulletImage->drawImage(8, 8,(bulletXPos * scaleFactor * tileWidth) + mapOffsetX, (bulletYPos * scaleFactor * tileWidth) + mapOffsetY);
+		bulletImage->drawImage(8 * scaleFactor * 3, 8 * scaleFactor* 3, (bulletXPos * scaleFactor * tileWidth) + mapOffsetX, (bulletYPos * scaleFactor * tileWidth) + mapOffsetY);
 	}
 	else
 	{
-		bulletImage->drawImage(16, 16, (bulletXPos * scaleFactor * tileWidth) + mapOffsetX, (bulletYPos * scaleFactor * tileWidth) + mapOffsetY);
+		bulletImage->drawImage(16 * scaleFactor* 3, 16 * scaleFactor* 3, (bulletXPos * scaleFactor * tileWidth) + mapOffsetX, (bulletYPos * scaleFactor * tileWidth) + mapOffsetY);
 		//cout << "Bullet xPos = " << bulletXPos << " yPos = " << bulletYPos << endl;
 		//cout << "Bullet xSpeed = " << xSpeed << " ySpeed = " << ySpeed << endl;
 	}

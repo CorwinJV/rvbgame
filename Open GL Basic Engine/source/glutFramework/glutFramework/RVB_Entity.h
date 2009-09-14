@@ -46,6 +46,7 @@ public:
 	void setState(higherState newState);		// this is so the player (us) can give the entities commands whether they like it or not
 	void setEnemyTarget(RVB_Entity *newTarget);
 	void setHealth(int health_n);
+	void drawEntityTarget(int tileWidth, double scaleFactor, double mapOffsetX, double mapOffsetY);
 	
 private:
 	int xPos;

@@ -137,11 +137,11 @@ int rvbWeapon::reload(int ammoLeft, int ammoInClip, RVB_WeaponType type_n)
 	return ammoPool;
 }
 
-RVB_Bullet* rvbWeapon::shotFired(int xPos, int yPos, int targetX, int targetY)
+RVB_Bullet* rvbWeapon::shotFired(double xPos, double yPos, double targetX, double targetY)
 {
 	// this function needs to be tweaked to account for firing at enemies to the left of you
-	double tempX = abs(targetX - xPos);
-	double tempY = abs(targetY - yPos);
+	double tempX = GameVars->dAbs(targetX - xPos);
+	double tempY = GameVars->dAbs(targetY - yPos);
 
 	double tempXSpeed = ( tempX / (tempX + tempY) );
 	double tempYSpeed = ( tempY / (tempY + tempX) );
