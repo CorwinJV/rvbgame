@@ -133,33 +133,19 @@ void RVB_Map::Draw()
 		}
 	}
 
-	drawText();	
-
-	// finally we draws us some bullets yo!
-	int tempSize = bulletList.size();
-
-	for (int x = 0; x < tempSize; x++)
-	{
-		bulletList[x]->draw(scaleFactor, tileWidth, mapOffsetX, mapOffsetY);
-	}
-}
-
-void RVB_Map::drawEntities(int tileWidth, double scaleFactor, int mapOffsetX, int mapOffsetY)
-{
+	// now lets tell all objects in the board to draw themselves!
 	int tempLimit = objectList.size();
-
 	for(int xi = 0; xi < tempLimit; xi++)
 	{
 		objectList[xi]->Draw(tileWidth, scaleFactor, mapOffsetX, mapOffsetY);
 	}
-}
 
-void RVB_Map::drawFog(int tileWidth, double scaleFactor, int mapOffsetX, int mapOffsetY)
-{
+	drawText();
+
 	// now its time for fog of war
 	vector<vector<double>> myFog;
 
-	int uberFactor = 2;
+	int uberFactor = 4;
 
 	int mapWidth = mBoard.size();
 	int mapHeight = mBoard[0].size();
@@ -181,7 +167,7 @@ void RVB_Map::drawFog(int tileWidth, double scaleFactor, int mapOffsetX, int map
 			}
 		}
 	}
-
+	
 	// now lets go and unfog some areas
 
 	if(GameVars->mySide != GOD)
@@ -219,6 +205,16 @@ void RVB_Map::drawFog(int tileWidth, double scaleFactor, int mapOffsetX, int map
 			}
 		}
 	}
+
+	// finally we draws us some bullets yo!
+	int tempSize = bulletList.size();
+
+	for (int x = 0; x < tempSize; x++)
+	{
+		bulletList[x]->draw(scaleFactor, tileWidth, mapOffsetX, mapOffsetY);
+	}
+
+
 	// now lets draw the fog!
 	// set fog dimensions
 
@@ -235,6 +231,8 @@ void RVB_Map::drawFog(int tileWidth, double scaleFactor, int mapOffsetX, int map
 											((y*tileWidth)*scaleFactor / uberFactor )+mapOffsetY); // Y
 		}
 	}	
+
+
 }
 
 double RVB_Map::getScale()
