@@ -42,26 +42,31 @@ void RVB_Entity::Update()
 				if(bulletsLeft > 0)
 				{
 					// then fire the shot, deduct one from the ammo and set it as the new amount
+					double fireFromX = xPos + 0.5;
+					double fireFromY = yPos + 0.5;
 					fireAtX += 0.5;
 					fireAtY += 0.5;
-					xPos += 0.5;
-					yPos += 0.5;
 					if(!(currentWeapon->getType() == WEAPON_SHOTTY))
 					{
-						board->makeBullet(currentWeapon->shotFired(xPos , yPos , fireAtX, fireAtY));
+						board->makeBullet(currentWeapon->shotFired(fireFromX , fireFromY , fireAtX, fireAtY));
 					}
 					else
 					{
-						board->makeBullet(currentWeapon->shotFired(xPos , yPos , (rand() / 32768.0) - 0.5 + fireAtX, 
-																			     (rand() / 32768.0) - 0.5 + fireAtY) );
-						board->makeBullet(currentWeapon->shotFired(xPos , yPos , (rand() / 32768.0) - 0.5 + fireAtX, 
-																			     (rand() / 32768.0) - 0.5 + fireAtY) );
-						board->makeBullet(currentWeapon->shotFired(xPos , yPos , (rand() / 32768.0) - 0.5 + fireAtX, 
-																			     (rand() / 32768.0) - 0.5 + fireAtY) );
-						board->makeBullet(currentWeapon->shotFired(xPos , yPos , (rand() / 32768.0) - 0.5 + fireAtX, 
-																			     (rand() / 32768.0) - 0.5 + fireAtY) );
-						board->makeBullet(currentWeapon->shotFired(xPos , yPos , (rand() / 32768.0) - 0.5 + fireAtX, 
-																			     (rand() / 32768.0) - 0.5 + fireAtY) );						
+						board->makeBullet(currentWeapon->shotFired(fireFromX , fireFromY , 
+																	(rand() / 32768.0) - 0.5 + fireAtX, 
+																	(rand() / 32768.0) - 0.5 + fireAtY) );
+						board->makeBullet(currentWeapon->shotFired(fireFromX , fireFromY , 
+																	(rand() / 32768.0) - 0.5 + fireAtX, 
+																	(rand() / 32768.0) - 0.5 + fireAtY) );
+						board->makeBullet(currentWeapon->shotFired(fireFromX , fireFromY , 
+																	(rand() / 32768.0) - 0.5 + fireAtX, 
+																	(rand() / 32768.0) - 0.5 + fireAtY) );
+						board->makeBullet(currentWeapon->shotFired(fireFromX , fireFromY , 
+																	(rand() / 32768.0) - 0.5 + fireAtX, 
+																	(rand() / 32768.0) - 0.5 + fireAtY) );
+						board->makeBullet(currentWeapon->shotFired(fireFromX , fireFromY , 
+																	(rand() / 32768.0) - 0.5 + fireAtX, 
+																	(rand() / 32768.0) - 0.5 + fireAtY) );
 					}
 
 					bulletsLeft -= 1;

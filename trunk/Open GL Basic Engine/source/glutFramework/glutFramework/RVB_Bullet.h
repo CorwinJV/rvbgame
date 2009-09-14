@@ -22,6 +22,8 @@ private:
 	bool	active;					// is the bullet active?
 	double	bulletXPos;				// bullet's position on the x-coordinate
 	double	bulletYPos;				// bullet's position on the y-coordinate
+	double	sourceX;
+	double	sourceY;
 	RVB_BulletType type;			// what kind of bullet is being fired
 	oglTexture2D* bulletImage;		// what picture to use for the bullet
 

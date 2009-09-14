@@ -49,10 +49,10 @@ public:
 	void drawEntityTarget(int tileWidth, double scaleFactor, double mapOffsetX, double mapOffsetY);
 	
 private:
-	int xPos;
-	int yPos;
-	int targetX;
-	int targetY;
+	double xPos;
+	double yPos;
+	double targetX;
+	double targetY;
 	int health;
 	entityDirection facingDirection;
 
