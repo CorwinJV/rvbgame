@@ -7,8 +7,8 @@ RVB_Bullet::RVB_Bullet(double xPos, double yPos, double damage_n, double xSpeed_
 	bulletXPos = xPos;
 	bulletYPos = yPos;
 	damage = damage_n;
-	xSpeed = xSpeed_n;
-	ySpeed = ySpeed_n;
+	xSpeed = xSpeed_n / 5;
+	ySpeed = ySpeed_n / 5;
 	speed = speed_n;
 	range = range_n;
 	type = type_n;

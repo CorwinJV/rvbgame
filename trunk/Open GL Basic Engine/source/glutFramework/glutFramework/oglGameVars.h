@@ -14,7 +14,7 @@
 #define GameVars oglGameVars::Instance()
 #define imageSize 100
 
-#define entityVisionRadius 20
+#define entityVisionRadius 5
 
 using namespace std;
 
