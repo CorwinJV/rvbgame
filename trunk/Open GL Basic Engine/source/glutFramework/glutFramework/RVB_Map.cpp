@@ -10,6 +10,8 @@ RVB_Map::RVB_Map()
 	cout << "You shouldn't be using this " << endl;
 }
 
+// corwin lost the game
+
 RVB_Map::RVB_Map(int mapSizeX, int mapSizeY)
 :mRotation(0.0)
 {
@@ -75,6 +77,7 @@ void RVB_Map::Update()
 	recalcBoard();
 
 	updateBullets();
+	didBulletHitSomething();
 }
 
 //====================
@@ -240,6 +243,36 @@ RVB_Entity *RVB_Map::getSelectableEntityAtGridCoord(int gridX, int gridY)
 		}
 	}
 	return entityToReturn;
+}
+
+void RVB_Map::didBulletHitSomething()
+{
+	int size = bulletList.size();
+	bool hit = false;
+	double tempDamage   = 0.0;
+	double tempRange    = 0.0;
+	double tempDistTrav = 0.0;
+	RVB_Entity* tempEntity;
+
+	// cycle through the bullets on the screen
+	for(int x = 0; x < size; x++)
+	{
+		// see if any of them has hit anything on the screen
+		if(hit = isThereAnEntityAt(bulletList[x]->getBulletXPos(), bulletList[x]->getBulletYPos()))
+		{
+			// get all the bullet info
+			tempDamage   = bulletList[x]->getDamage();
+			tempRange    = bulletList[x]->getRange();
+			tempDistTrav = bulletList[x]->getDistanceTraveled();
+			// calculate the damage based on how far the bullet has traveled
+			bulletList[x]->calcDamage(tempDamage, tempRange, tempDistTrav);
+			// at this point see who we hit and apply the damage
+			tempEntity = getSelectableEntityAtGridCoord(bulletList[x]->getBulletXPos(), bulletList[x]->getBulletYPos());
+			tempEntity->applyDamage(bulletList[x]->getDamage());
+			// now set the bullet to inactive
+			bulletList[x]->setActive(!hit);
+		}
+	}
 }
 
 void RVB_Map::clearEntityTargets()

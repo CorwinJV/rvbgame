@@ -47,6 +47,7 @@ public:
 	void setEnemyTarget(RVB_Entity *newTarget);
 	void setHealth(int health_n);
 	void drawEntityTarget(int tileWidth, double scaleFactor, double mapOffsetX, double mapOffsetY);
+	void reload(int bullets);
 	
 private:
 	double xPos;
@@ -58,6 +59,10 @@ private:
 
 	clock_t timeOfLastUpdate;
 	clock_t timeSinceLastUpdate;
+	clock_t timeOfLastFire;
+	clock_t timeSinceLastFire;
+	clock_t timeOfLastReload;
+	clock_t timeSinceLastReload;
 	double timeStep;
 
 	entityType type;

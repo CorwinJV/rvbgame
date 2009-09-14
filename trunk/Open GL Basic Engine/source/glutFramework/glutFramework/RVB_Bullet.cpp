@@ -97,7 +97,11 @@ void	RVB_Bullet::calcDamage(double damage_n, double range_n, double distanceTrav
 		distanceTemp = 1;
 	}
 
-	damage = ((((rangeTemp/2) + 1) - distanceTemp)  / (rangeTemp / 2));
+	if(distanceTemp > (rangeTemp/2))
+	{
+		distanceTemp = distanceTemp - rangeTemp/2;
+	}
+	damage *= ((((rangeTemp/2) + 1) - distanceTemp)  / (rangeTemp / 2));
 }
 
 //	setters
@@ -132,6 +136,11 @@ void	RVB_Bullet::setBulletPos(int xPos, int yPos)
 	bulletYPos = yPos;
 }
 
+void	RVB_Bullet::setActive(bool active_n)
+{
+	active = active_n;
+}
+
 //	 getters
 double	RVB_Bullet::getDistanceTraveled()
 {
@@ -161,4 +170,14 @@ bool	RVB_Bullet::getActive()
 RVB_BulletType	RVB_Bullet::getBulletType()
 {
 	return type;
+}
+
+double RVB_Bullet::getBulletXPos()
+{
+	return bulletXPos;
+}
+
+double RVB_Bullet::getBulletYPos()
+{
+	return bulletYPos;
 }

@@ -25,6 +25,7 @@ public: // Boilerplate Class Stuff
 	RVB_Entity* cycleEntityUp(RVB_Entity* selectedEntity);
 	void drawFog(int tileWidth, double scaleFactor, double mapOffsetX, double mapOffsetY);
 	void drawEntities(int tileWidth, double scaleFactor, int mapOffsetX, int mapOffsetY);
+	void didBulletHitSomething();
 
 private: // Private Data Members
 	vector<vector<RVB_MapTile*>> mBoard;	// the vector of tiles that comprise the board
