@@ -2,9 +2,9 @@
 #include "RVB_Map.h"
 
 //		FUN NAME  rvbWeapon(dmg, range, clip, ammo,       type,		firing rate, reload time)
-#define RVBPISTOL rvbWeapon(10,      6,   10,   10, WEAPON_PISTOL,	1000,		 5000);
-#define RVBSHOTTY rvbWeapon(30,      3,    4,    4, WEAPON_SHOTTY,	3000,		 3000);
-#define RVBRIFFLE rvbWeapon(20,     12,    1,    1, WEAPON_RIFFLE,	5000,		 1000);
+#define RVBPISTOL rvbWeapon(10,      6,   10,   10, WEAPON_PISTOL,	1000,		 1000);
+#define RVBSHOTTY rvbWeapon( 3,      3,    4,    4, WEAPON_SHOTTY,	3000,		 3000);
+#define RVBRIFFLE rvbWeapon(20,     12,    1,    1, WEAPON_RIFFLE,	5000,		 2000);
 
 
 void RVB_Entity::Update()
@@ -48,29 +48,47 @@ void RVB_Entity::Update()
 					double fireFromY = yPos + 0.5;
 					fireAtX += 0.5;
 					fireAtY += 0.5;
+
+					// this variable controls the number of bullets sprayed by the shotty
+					int shotgunBullets = 5;
+
+					// see where the target we're shooting at is, 
+					// so we can adjust the spawn point of the bullet
+					// so it doesn't hit us!
+					if(fireAtX > fireFromX)
+					{
+						fireFromX += 0.5;
+					}
+					else if(fireAtX < fireFromX)
+					{
+						fireFromX -= 0.5;
+					}
+					if(fireAtY > fireFromY)
+					{
+						fireFromY += 0.5;
+					}
+					else if(fireAtY < fireFromY)
+					{
+						fireFromY -= 0.5;
+					}
+
+					// if we're not shooting the shotgun
 					if(!(currentWeapon->getType() == WEAPON_SHOTTY))
 					{
+						// SHOOT!
 						board->makeBullet(currentWeapon->shotFired(fireFromX , fireFromY , fireAtX, fireAtY));
 						// log the time of last shot taken
 						timeOfLastFire = clock();
 					}
-					else
+					else	//otherwise we are shooting the shotgun and have to make multiple shots
 					{
-						board->makeBullet(currentWeapon->shotFired(fireFromX , fireFromY , 
+						for(int x = 0; x < shotgunBullets; x++)
+						{
+							board->makeBullet(currentWeapon->shotFired(fireFromX , fireFromY , 
 																	(rand() / 32768.0) - 0.5 + fireAtX, 
 																	(rand() / 32768.0) - 0.5 + fireAtY) );
-						board->makeBullet(currentWeapon->shotFired(fireFromX , fireFromY , 
-																	(rand() / 32768.0) - 0.5 + fireAtX, 
-																	(rand() / 32768.0) - 0.5 + fireAtY) );
-						board->makeBullet(currentWeapon->shotFired(fireFromX , fireFromY , 
-																	(rand() / 32768.0) - 0.5 + fireAtX, 
-																	(rand() / 32768.0) - 0.5 + fireAtY) );
-						board->makeBullet(currentWeapon->shotFired(fireFromX , fireFromY , 
-																	(rand() / 32768.0) - 0.5 + fireAtX, 
-																	(rand() / 32768.0) - 0.5 + fireAtY) );
-						board->makeBullet(currentWeapon->shotFired(fireFromX , fireFromY , 
-																	(rand() / 32768.0) - 0.5 + fireAtX, 
-																	(rand() / 32768.0) - 0.5 + fireAtY) );
+						}
+						
 						// log the time of last shot taken
 						timeOfLastFire = clock();
 					}
