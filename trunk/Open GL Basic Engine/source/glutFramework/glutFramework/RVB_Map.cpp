@@ -159,7 +159,7 @@ void RVB_Map::drawFog(int tileWidth, double scaleFactor, int mapOffsetX, int map
 	// now its time for fog of war
 	vector<vector<double>> myFog;
 
-	int uberFactor = 4;
+	int uberFactor = 2;
 
 	int mapWidth = mBoard.size();
 	int mapHeight = mBoard[0].size();

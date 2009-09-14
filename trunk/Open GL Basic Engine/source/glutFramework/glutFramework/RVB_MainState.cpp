@@ -35,11 +35,11 @@ void RVB_MainState::init()
 	//}
 
 
-	currentMap->addEntity(BLUE, 35, 3, NORTH);
-	currentMap->addEntity(BLUE, 35, 6, NORTH);
-	currentMap->addEntity(BLUE, 35, 9, NORTH);
-	currentMap->addEntity(BLUE, 35, 12, NORTH);
-	currentMap->addEntity(BLUE, 35, 15, NORTH);
+	currentMap->addEntity(BLUE, 15, 3, NORTH);
+	currentMap->addEntity(BLUE, 15, 6, NORTH);
+	currentMap->addEntity(BLUE, 15, 9, NORTH);
+	currentMap->addEntity(BLUE, 15, 12, NORTH);
+	currentMap->addEntity(BLUE, 15, 15, NORTH);
 
 	curMouseX = 0;
 	curMouseY = 0;
@@ -305,58 +305,59 @@ void RVB_MainState::processMouseClick(int button, int state, int x, int y)
 		int gridPosX = -1;
 		int gridPosY = -1;
 		currentMap->getGridCoord(x, y, &gridPosX, &gridPosY);
-		
-		if(modifiers & GLUT_ACTIVE_ALT)
+
+		if( (gridPosX >=0) && (gridPosX < currentMap->getBoardWidth()) &&
+			(gridPosY >=0) && (gridPosY < currentMap->getBoardHeight()) )
 		{
-			// DEBUG
-			// Toggle obstacles on that tile
-			if((gridPosX != -1) && (gridPosY != -1))
+			if(modifiers & GLUT_ACTIVE_ALT)
 			{
-				currentMap->toggleObstacle(gridPosX, gridPosY);
-			}
-		}
-		else if(modifiers & GLUT_ACTIVE_CTRL)
-		{
-			// Fire on selected target
-			// attack move for now...
-			setSelectedEntitiesTargets(gridPosX, gridPosY);
-			setSelectedEntitiesState(ATTACKMOVE);			
-		}
-		else // No modifiers
-		{
-			// If on empty tile || If on obstacle
-				// Pathfind to empty tile ||  Pathfinds to closest non-obstacle
-			if((gridPosX != -1) && (gridPosY != -1))
-			{
-				// if there are no entities or obstacles... then go ahead and set targets
-				if(currentMap->isTileValidMove(gridPosX, gridPosY))
+				// DEBUG
+				// Toggle obstacles on that tile
+				if((gridPosX != -1) && (gridPosY != -1))
 				{
-					setSelectedEntitiesTargets(gridPosX, gridPosY);
-					// and set them to moving
-					setSelectedEntitiesState(HIGHERMOVING);
+					currentMap->toggleObstacle(gridPosX, gridPosY);
 				}
-				// now check to see if there's any enemies at the location
-				if(selectedEntityList->size() > 0)
+			}
+			else if(modifiers & GLUT_ACTIVE_CTRL)
+			{
+				// Fire on selected target
+				// attack move for now...
+				setSelectedEntitiesTargets(gridPosX, gridPosY);
+				setSelectedEntitiesState(ATTACKMOVE);			
+			}
+			else // No modifiers
+			{
+				// If on empty tile || If on obstacle
+					// Pathfind to empty tile ||  Pathfinds to closest non-obstacle
+				if((gridPosX != -1) && (gridPosY != -1))
 				{
-					if( (currentMap->areThereAnyEnemiesAt(gridPosX, gridPosY, (*selectedEntityList)[0]->getType())) ||
-						(currentMap->areThereAnyFriendsAt(gridPosX, gridPosY, (*selectedEntityList)[0]->getType())) )
+					// if there are no entities or obstacles... then go ahead and set targets
+					if(currentMap->isTileValidMove(gridPosX, gridPosY))
 					{
-						setSelectedEntitiesEnemyTargets(gridPosX, gridPosY);
-						setSelectedEntitiesState(CHASING);
+						setSelectedEntitiesTargets(gridPosX, gridPosY);
+						// and set them to moving
+						setSelectedEntitiesState(HIGHERMOVING);
+					}
+					// now check to see if there's any enemies at the location
+					if(selectedEntityList->size() > 0)
+					{
+						if( (currentMap->areThereAnyEnemiesAt(gridPosX, gridPosY, (*selectedEntityList)[0]->getType())) ||
+							(currentMap->areThereAnyFriendsAt(gridPosX, gridPosY, (*selectedEntityList)[0]->getType())) )
+						{
+							setSelectedEntitiesEnemyTargets(gridPosX, gridPosY);
+							setSelectedEntitiesState(CHASING);
+						}
 					}
 				}
 			}
-		}
-		//=================
-		// TODO!!!
-		// If on other color entity
-			// Set selected entity to attack other color entity
+			//=================
+			// TODO!!!
+			// If on other color entity
+				// Set selected entity to attack other color entity
 
-		// On same color entity 
-			// Follow / guard target
-
-		
-			
+			// On same color entity 
+				// Follow / guard target
+		}			
 	}
 	if((button == GLUT_LEFT) && (state == GLUT_DOWN))
 	{
