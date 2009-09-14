@@ -1,16 +1,18 @@
 #include "RVB_entity.h" 
 #include "RVB_Map.h"
 
-//		FUN NAME  rvbWeapon(dmg, range, clip, ammo, type, firing rate)
-#define RVBPISTOL rvbWeapon(10, 6, 10, 10, WEAPON_PISTOL, 1);
-#define RVBSHOTTY rvbWeapon(30, 3, 4, 4, WEAPON_SHOTTY, 3);
-#define RVBRIFFLE rvbWeapon(20, 12, 1, 1, WEAPON_RIFFLE, 5);
+//		FUN NAME  rvbWeapon(dmg, range, clip, ammo,       type,		firing rate, reload time)
+#define RVBPISTOL rvbWeapon(10,      6,   10,   10, WEAPON_PISTOL,	1000,		 5000);
+#define RVBSHOTTY rvbWeapon(30,      3,    4,    4, WEAPON_SHOTTY,	3000,		 3000);
+#define RVBRIFFLE rvbWeapon(20,     12,    1,    1, WEAPON_RIFFLE,	5000,		 1000);
 
 
 void RVB_Entity::Update()
 {
 	// Query how long it's been since our last update
 	timeSinceLastUpdate = clock() - timeOfLastUpdate;
+	timeSinceLastFire   = clock() - timeOfLastFire;
+	timeSinceLastReload = clock() - timeOfLastReload;
 
 	// We want this for time stepping.
 	if(timeSinceLastUpdate > (timeStep)) // (timestep == number of seconds)
@@ -33,7 +35,7 @@ void RVB_Entity::Update()
 			}
 			
 			// see if the firing rate of the gun we're using will let us fire again
-			if(timeSinceLastUpdate > currentWeapon->getFireRate())
+			if(timeSinceLastFire > currentWeapon->getFireRate())
 			{
 				// see how many bullets we have left in the clip
 				bulletsLeft = currentWeapon->getAmmoLeftInClip();
@@ -49,6 +51,8 @@ void RVB_Entity::Update()
 					if(!(currentWeapon->getType() == WEAPON_SHOTTY))
 					{
 						board->makeBullet(currentWeapon->shotFired(fireFromX , fireFromY , fireAtX, fireAtY));
+						// log the time of last shot taken
+						timeOfLastFire = clock();
 					}
 					else
 					{
@@ -67,6 +71,8 @@ void RVB_Entity::Update()
 						board->makeBullet(currentWeapon->shotFired(fireFromX , fireFromY , 
 																	(rand() / 32768.0) - 0.5 + fireAtX, 
 																	(rand() / 32768.0) - 0.5 + fireAtY) );
+						// log the time of last shot taken
+						timeOfLastFire = clock();
 					}
 
 					bulletsLeft -= 1;
@@ -75,48 +81,47 @@ void RVB_Entity::Update()
 				//otherwise try to reload
 				else
 				{
-					// reset the reload ammo to 0
-					reloadAmmo = 0;
+					if(timeSinceLastReload > currentWeapon->getReloadTime())
+					{
+						// reset the reload ammo to 0
+						reloadAmmo = 0;
 
-					// see what kind of gun we're using
-					switch(currentWeapon->getType())
-					{
-					case WEAPON_PISTOL:
-						reloadAmmo = myAmmoPack.pistolAmmo;
-						break;
-					case WEAPON_SHOTTY:
-						reloadAmmo = myAmmoPack.shotgunAmmo;
-						break;
-					case WEAPON_RIFFLE:
-						reloadAmmo = myAmmoPack.rifleAmmo;
-						break;
-					default:
-						cout << "something is broke, we returned a type of gun that doesnt exist in attacking state" << endl;
-						break;
-					}
-					
-					// if we have ammo, then reload
-					if(reloadAmmo > 0)
-					{
-						// send in whatever amount of ammo we have and what kind of gun we're using
-						// **************************
-						// ** the second parameter is hardcoded as 0 now, as we're only going to let the 
-						// ** entities reload when their clip is empty
-						// **************************
-						currentWeapon->reload(reloadAmmo, 0, currentWeapon->getType());
-					}
-					else // well we have no more bullets, so lets go ahead and switch weapons
-					{
-						// first see if we're using weapon 1
-						if(currentWeapon->getType() == myWeapon1->getType())
+						// see what kind of gun we're using
+						switch(currentWeapon->getType())
 						{
-							// if so switch to weapon 2
-							currentWeapon = myWeapon2;
-						}
-						else
-						{
-							// otherwise we were using weapon 2, switch to weapon 1
-							currentWeapon = myWeapon1;
+							// set the ammo we have for each gun to reload
+							// then pass in the number to attempt to reload
+							// and if there was ammo reloaded, subtract it from cache
+						case WEAPON_PISTOL:
+							reloadAmmo = myAmmoPack.pistolAmmo;
+							reload(reloadAmmo);
+							timeOfLastReload = clock();
+							if(reloadAmmo > 0)
+							{
+								myAmmoPack.pistolAmmo -= currentWeapon->getAmmoLeftInClip();
+							}
+							break;
+						case WEAPON_SHOTTY:
+							reloadAmmo = myAmmoPack.shotgunAmmo;
+							reload(reloadAmmo);
+							timeOfLastReload = clock();
+							if(reloadAmmo > 0)
+							{
+								myAmmoPack.shotgunAmmo -= currentWeapon->getAmmoLeftInClip();
+							}
+							break;
+						case WEAPON_RIFFLE:
+							reloadAmmo = myAmmoPack.rifleAmmo;
+							reload(reloadAmmo);
+							timeOfLastReload = clock();
+							if(reloadAmmo > 0)
+							{
+								myAmmoPack.rifleAmmo -= currentWeapon->getAmmoLeftInClip();
+							}
+							break;
+						default:
+							cout << "something is broke, we returned a type of gun that doesnt exist in attacking state" << endl;
+							break;
 						}
 					}
 				}
@@ -712,9 +717,9 @@ RVB_Entity::RVB_Entity(entityType newType, int newX, int newY, entityDirection n
 
 	timeOfLastUpdate = clock();
 
-	myAmmoPack.pistolAmmo = 0;
-	myAmmoPack.rifleAmmo = 20;
-	myAmmoPack.shotgunAmmo = 1000;
+	myAmmoPack.pistolAmmo = 5;
+	myAmmoPack.rifleAmmo = 2;
+	myAmmoPack.shotgunAmmo = 10;
 	
 	myWeapon1 = new RVBSHOTTY;
 	myWeapon2 = new RVBRIFFLE;
@@ -761,5 +766,35 @@ void RVB_Entity::applyDamage(int damage_n)
 		// set their state to dead
 		health = 0;
 		myHigherState = DEAD;
+	}
+}
+
+void RVB_Entity::reload(int bullets)
+{
+	int reloadAmmo = bullets;
+
+	// if we have ammo, then reload
+	if(reloadAmmo > 0)
+	{
+		// send in whatever amount of ammo we have and what kind of gun we're using
+		// **************************
+		// ** the second parameter is hardcoded as 0 now, as we're only going to let the 
+		// ** entities reload when their clip is empty
+		// **************************
+		currentWeapon->reload(reloadAmmo, 0, currentWeapon->getType());
+	}
+	else // well we have no more bullets, so lets go ahead and switch weapons
+	{
+		// first see if we're using weapon 1
+		if(currentWeapon->getType() == myWeapon1->getType())
+		{
+			// if so switch to weapon 2
+			currentWeapon = myWeapon2;
+		}
+		else
+		{
+			// otherwise we were using weapon 2, switch to weapon 1
+			currentWeapon = myWeapon1;
+		}
 	}
 }

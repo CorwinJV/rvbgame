@@ -15,6 +15,7 @@ private:
 	int clipSize;					// how much ammo your clip can hold
 
 	int firingRate;					// how quickly the gun can fire shots
+	int reloadTime;					// how long does the weapon take to reload
 	
 	double closeRange;				// what is considered close/medium/long for this weapon
 	double mediumRange;				
@@ -23,7 +24,8 @@ private:
 
 public:
 	rvbWeapon();
-	rvbWeapon(int damage_n, int range_n, int clipSize_n, int clipAmmo_n, RVB_WeaponType type_n, int fireRate);
+	rvbWeapon(int damage_n, int range_n, int clipSize_n, int clipAmmo_n, 
+			  RVB_WeaponType type_n, int fireRate_n, int reloadTime_n);
 	~rvbWeapon();
 
 	// setters and getters
@@ -34,6 +36,7 @@ public:
 	int getAmmoLeftInClip();		// returns the ammount of ammo left in the clip
 	RVB_WeaponType getType();		// what kind of gun is it?
 	int getFireRate();				// how fast can the gun fire?
+	int getReloadTime();			// how long does it take to reload
 	
 	void setAmmoLeftInClip(int ammoLeft);	// sets the amount of ammo left
 

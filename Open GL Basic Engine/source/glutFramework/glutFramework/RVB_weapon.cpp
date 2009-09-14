@@ -15,14 +15,16 @@ rvbWeapon::rvbWeapon()
 	std::cout << "If you see this, someone done fucked up." << std::endl;
 }
 
-rvbWeapon::rvbWeapon(int damage_n, int range_n, int clipSize_n, int clipAmmo_n, RVB_WeaponType type_n, int fireRate)
+rvbWeapon::rvbWeapon(int damage_n, int range_n, int clipSize_n, int clipAmmo_n, 
+					 RVB_WeaponType type_n, int fireRate_n, int reloadTime_n)
 {
 	damage = damage_n;
 	range = range_n;
 	clipSize = clipSize_n;
 	clipAmmo = clipAmmo_n;
 	type = type_n;
-	firingRate = fireRate;
+	firingRate = fireRate_n;
+	reloadTime = reloadTime_n;
 
 	closeRange = range/3;
 	mediumRange = 2*closeRange;
@@ -91,6 +93,11 @@ int rvbWeapon::getAmmoLeftInClip()
 RVB_WeaponType rvbWeapon::getType()
 {
 	return type;
+}
+
+int rvbWeapon::getReloadTime()
+{
+	return reloadTime;
 }
 
 void rvbWeapon::setAmmoLeftInClip(int ammoLeft)

@@ -48,6 +48,7 @@ public:
 	void	setSpeed(double speed_n);
 	void	setRange(double range_n);
 	void	setBulletPos(int xPos, int yPos);
+	void	setActive(bool active_n);
 
 	//	 getters
 	double			getDistanceTraveled();
@@ -56,6 +57,9 @@ public:
 	double			getDirecion();
 	double			getRange();
 	bool			getActive();
+	double			getBulletXPos();
+	double			getBulletYPos();
+
 	RVB_BulletType	getBulletType();
 };
 #endif		RVB_Bullet_H
