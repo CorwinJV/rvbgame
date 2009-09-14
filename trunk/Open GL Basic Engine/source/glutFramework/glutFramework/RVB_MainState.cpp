@@ -101,14 +101,16 @@ bool RVB_MainState::Update()
 //
 bool RVB_MainState::Draw()
 {
-	currentMap->Draw();
 
 	int tileWidth = currentMap->getTileWidth();
 	double scaleFactor = currentMap->getScale();
-	int mapOffsetX = currentMap->getOffsetX();
-	int mapOffsetY = currentMap->getOffsetY();
+	double mapOffsetX = currentMap->getOffsetX();
+	double mapOffsetY = currentMap->getOffsetY();
 
-	// draw targetted entities by currently selected entities
+	// draw the gameboard tiles
+	currentMap->Draw();
+
+	// draw reticle around entities being targetted by the currently selected entities
 	vector<RVB_Entity*>::iterator itr = selectedEntityList->begin();
 	for(;itr != selectedEntityList->end(); itr++)
 	{
@@ -117,12 +119,6 @@ bool RVB_MainState::Draw()
 			(*itr)->drawEntityTarget(tileWidth, scaleFactor, mapOffsetX, mapOffsetY);
 		}
 	}
-
-	// now draw all entities
-	currentMap->drawEntities(tileWidth, scaleFactor, mapOffsetX, mapOffsetY);
-
-	// then some fog
-	currentMap->drawFog(tileWidth, scaleFactor, mapOffsetX, mapOffsetY);
 
 	// if we have something selected, draw it selected
 	itr = selectedEntityList->begin();
@@ -137,8 +133,25 @@ bool RVB_MainState::Draw()
 													(int)(tileWidth*scaleFactor),			 // Height
 													((xPos*tileWidth)*scaleFactor)+mapOffsetX,  // X
 													((yPos*tileWidth)*scaleFactor)+mapOffsetY); // Y
+		}
+	}
 
-			// if the entity has a move target, lets draw that too
+	// now draw all entities
+	currentMap->drawEntities(tileWidth, scaleFactor, mapOffsetX, mapOffsetY);
+
+	// then some fog
+	currentMap->drawFog(tileWidth, scaleFactor, mapOffsetX, mapOffsetY);
+
+
+	// if we have something selected, lets draw the move targets (if it has one)
+	itr = selectedEntityList->begin();
+	for(;itr != selectedEntityList->end(); itr++)
+	{
+		if((*itr) != NULL)
+		{
+			int xPos = (*itr)->getXPos();
+			int yPos = (*itr)->getYPos();
+
 			if((*itr)->getTargetX() != -1)
 			{
 				int targetX = (*itr)->getTargetX();

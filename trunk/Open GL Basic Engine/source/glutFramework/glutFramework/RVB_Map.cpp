@@ -133,78 +133,7 @@ void RVB_Map::Draw()
 		}
 	}
 
-	// now lets tell all objects in the board to draw themselves!
-	int tempLimit = objectList.size();
-	for(int xi = 0; xi < tempLimit; xi++)
-	{
-		objectList[xi]->Draw(tileWidth, scaleFactor, mapOffsetX, mapOffsetY);
-	}
-
-	drawText();
-
-	// now its time for fog of war
-	vector<vector<double>> myFog;
-
-	int uberFactor = 4;
-
-	int mapWidth = mBoard.size();
-	int mapHeight = mBoard[0].size();
-
-	// first lets fog this bitch up
-	myFog.resize(mapWidth * uberFactor);
-	for(int x = 0; x < mapWidth * uberFactor; x++)
-	{
-		myFog[x].resize(mapHeight * uberFactor);
-		for(int y = 0; y < mapHeight * uberFactor; y++)
-		{
-			if(GameVars->mySide != GOD)
-			{
-				myFog[x][y] = 1.0;
-			}
-			else
-			{
-				myFog[x][y] = 0.0;
-			}
-		}
-	}
-	
-	// now lets go and unfog some areas
-
-	if(GameVars->mySide != GOD)
-	{
-		double visionCalc = entityVisionRadius + 1;
-		// iterate through entity list
-		for(int entX = 0; entX < (int)objectList.size(); entX++)
-		{
-			entityType entityAt = objectList[entX]->getType();
-			
-			if(entityAt == GameVars->mySide)
-			{
-				int entityX = objectList[entX]->getXPos();
-				int entityY = objectList[entX]->getYPos();
-
-				for(int x = (entityX * uberFactor) - (visionCalc * uberFactor); x < (entityX * uberFactor) + ((visionCalc + 1) * uberFactor); x++)
-				{ 
-					for(int y = (entityY * uberFactor) - (visionCalc * uberFactor); y < (entityY * uberFactor) + ((visionCalc + 1) * uberFactor); y++)
-					{
-						if((x >= 0) && (x < mapWidth * uberFactor) && 
-						   (y >= 0) && (y < mapHeight * uberFactor))
-						{
-							double distanceToTarget = GameVars->getDistanceToTarget(x, y, (entityX + 0.25) * uberFactor, (entityY + 0.25) * uberFactor);
-							if(distanceToTarget <= visionCalc * uberFactor)
-							{
-								myFog[x][y] -= (1.0/uberFactor * (((visionCalc * uberFactor + 1) - distanceToTarget)) / visionCalc * uberFactor);
-								if(myFog[x][y] < 0)
-								{
-									myFog[x][y] = 0;
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
+	drawText();	
 
 	// finally we draws us some bullets yo!
 	int tempSize = bulletList.size();
@@ -213,26 +142,6 @@ void RVB_Map::Draw()
 	{
 		bulletList[x]->draw(scaleFactor, tileWidth, mapOffsetX, mapOffsetY);
 	}
-
-
-	// now lets draw the fog!
-	// set fog dimensions
-
-	for(int x = 0; x < mapWidth * uberFactor; x++)
-	{
-		for(int y = 0; y < mapHeight * uberFactor; y++)
-		{
-
-			// now draw it
-			GameVars->fog->drawImageFaded(myFog[x][y],
-											(tileWidth*scaleFactor / uberFactor),			 // Width
-											(tileWidth*scaleFactor / uberFactor),			 // Height
-											((x*tileWidth)*scaleFactor / uberFactor )+mapOffsetX,  // X
-											((y*tileWidth)*scaleFactor / uberFactor )+mapOffsetY); // Y
-		}
-	}	
-
-
 }
 
 double RVB_Map::getScale()
@@ -631,4 +540,97 @@ void RVB_Map::makeBullet(RVB_Bullet *newBullet)
 {
 	// add the new bullet that was just passed in to the vector
 	bulletList.push_back(newBullet);
+}
+
+void RVB_Map::drawFog(int tileWidth, double scaleFactor, double mapOffsetX, double mapOffsetY)
+{
+	// now its time for fog of war
+	vector<vector<double>> myFog;
+
+	int uberFactor = 2;
+
+	int mapWidth = mBoard.size();
+	int mapHeight = mBoard[0].size();
+
+	// first lets fog this bitch up
+	myFog.resize(mapWidth * uberFactor);
+	for(int x = 0; x < mapWidth * uberFactor; x++)
+	{
+		myFog[x].resize(mapHeight * uberFactor);
+		for(int y = 0; y < mapHeight * uberFactor; y++)
+		{
+			if(GameVars->mySide != GOD)
+			{
+				myFog[x][y] = 1.0;
+			}
+			else
+			{
+				myFog[x][y] = 0.0;
+			}
+		}
+	}
+
+	// now lets go and unfog some areas
+
+	if(GameVars->mySide != GOD)
+	{
+		double visionCalc = entityVisionRadius + 1;
+		// iterate through entity list
+		for(int entX = 0; entX < (int)objectList.size(); entX++)
+		{
+			entityType entityAt = objectList[entX]->getType();
+			
+			if(entityAt == GameVars->mySide)
+			{
+				int entityX = objectList[entX]->getXPos();
+				int entityY = objectList[entX]->getYPos();
+
+				for(int x = (entityX * uberFactor) - (visionCalc * uberFactor); x < (entityX * uberFactor) + ((visionCalc + 1) * uberFactor); x++)
+				{ 
+					for(int y = (entityY * uberFactor) - (visionCalc * uberFactor); y < (entityY * uberFactor) + ((visionCalc + 1) * uberFactor); y++)
+					{
+						if((x >= 0) && (x < mapWidth * uberFactor) && 
+						   (y >= 0) && (y < mapHeight * uberFactor))
+						{
+							double distanceToTarget = GameVars->getDistanceToTarget(x, y, (entityX + 0.25) * uberFactor, (entityY + 0.25) * uberFactor);
+							if(distanceToTarget <= visionCalc * uberFactor)
+							{
+								myFog[x][y] -= (1.0/uberFactor * (((visionCalc * uberFactor + 1) - distanceToTarget)) / visionCalc * uberFactor);
+								if(myFog[x][y] < 0)
+								{
+									myFog[x][y] = 0;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	// now lets draw the fog!
+	// set fog dimensions
+
+	for(int x = 0; x < mapWidth * uberFactor; x++)
+	{
+		for(int y = 0; y < mapHeight * uberFactor; y++)
+		{
+
+			// now draw it
+			GameVars->fog->drawImageFaded(myFog[x][y],
+											(tileWidth*scaleFactor / uberFactor),			 // Width
+											(tileWidth*scaleFactor / uberFactor),			 // Height
+											((x*tileWidth)*scaleFactor / uberFactor )+mapOffsetX,  // X
+											((y*tileWidth)*scaleFactor / uberFactor )+mapOffsetY); // Y
+		}
+	}	
+}
+
+void RVB_Map::drawEntities(int tileWidth, double scaleFactor, int mapOffsetX, int mapOffsetY)
+{
+	int tempLimit = objectList.size();
+
+	for(int xi = 0; xi < tempLimit; xi++)
+	{
+		objectList[xi]->Draw(tileWidth, scaleFactor, mapOffsetX, mapOffsetY);
+	}
 }
