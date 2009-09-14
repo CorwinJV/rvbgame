@@ -263,10 +263,22 @@ void oglGameVars::parseMeIntoRows(vector<std::string*> *storageContainer, std::s
 
 double oglGameVars::getDistanceToTarget(double xPos, double yPos, double targetXPos, double targetYPos)
 {
-	double length = abs(xPos - targetXPos);
-	double height = abs(yPos - targetYPos);
+	double length = GameVars->dAbs(xPos - targetXPos);
+	double height = GameVars->dAbs(yPos - targetYPos);
 
 	double hypotenuse = sqrt((length * length) + (height * height));
 
 	return hypotenuse;
+}
+
+double	oglGameVars::dAbs(double something)
+{
+	if(something > 0)
+	{
+		return something;
+	}
+	else
+	{
+		return (something * -1);
+	}
 }

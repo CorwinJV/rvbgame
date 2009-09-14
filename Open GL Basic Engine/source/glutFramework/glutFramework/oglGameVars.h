@@ -131,6 +131,7 @@ public:
 
 
 	double						getDistanceToTarget(double xPos, double yPos, double targetXPos, double targetYPos);
+	double						dAbs(double something);
 	entityType					mySide;
 
 private:

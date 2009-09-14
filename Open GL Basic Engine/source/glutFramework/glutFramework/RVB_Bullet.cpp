@@ -66,7 +66,7 @@ bool	RVB_Bullet::update()
 
 	// check the distance traveled against absolute values of 
 	// x and ySpeed in the case that they are negative numbers
-	distanceTraveled += (abs(xSpeed) + abs(ySpeed)); 
+	distanceTraveled += (GameVars->dAbs(xSpeed) + GameVars->dAbs(ySpeed)); 
 
 	// see if the bullet has traveled to its range
 	if(distanceTraveled >= range)

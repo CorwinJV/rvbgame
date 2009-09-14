@@ -42,7 +42,25 @@ void RVB_Entity::Update()
 				if(bulletsLeft > 0)
 				{
 					// then fire the shot, deduct one from the ammo and set it as the new amount
-					board->makeBullet(currentWeapon->shotFired(xPos, yPos, fireAtX, fireAtY));
+					if(!currentWeapon->getType() == WEAPON_SHOTTY)
+					{
+						board->makeBullet(currentWeapon->shotFired(xPos, yPos, fireAtX, fireAtY));
+					}
+					else
+					{
+						board->makeBullet(currentWeapon->shotFired(xPos, yPos, (rand() / 32768.0) - 0.5 + fireAtX, 
+																			   (rand() / 32768.0) - 0.5 + fireAtY) );
+						board->makeBullet(currentWeapon->shotFired(xPos, yPos, (rand() / 32768.0) - 0.5 + fireAtX, 
+																			   (rand() / 32768.0) - 0.5 + fireAtY) );
+						board->makeBullet(currentWeapon->shotFired(xPos, yPos, (rand() / 32768.0) - 0.5 + fireAtX, 
+																			   (rand() / 32768.0) - 0.5 + fireAtY) );
+						board->makeBullet(currentWeapon->shotFired(xPos, yPos, (rand() / 32768.0) - 0.5 + fireAtX, 
+																			   (rand() / 32768.0) - 0.5 + fireAtY) );
+						board->makeBullet(currentWeapon->shotFired(xPos, yPos, (rand() / 32768.0) - 0.5 + fireAtX, 
+																			   (rand() / 32768.0) - 0.5 + fireAtY) );
+						
+					}
+
 					bulletsLeft -= 1;
 					currentWeapon->setAmmoLeftInClip(bulletsLeft);
 				}
@@ -688,7 +706,7 @@ RVB_Entity::RVB_Entity(entityType newType, int newX, int newY, entityDirection n
 
 	myAmmoPack.pistolAmmo = 0;
 	myAmmoPack.rifleAmmo = 0;
-	myAmmoPack.shotgunAmmo = 0;
+	myAmmoPack.shotgunAmmo = 1000;
 	
 	myWeapon1 = new RVBSHOTTY;
 	myWeapon2 = new RVBRIFFLE;
