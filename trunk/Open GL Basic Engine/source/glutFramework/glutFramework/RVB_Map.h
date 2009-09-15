@@ -90,6 +90,7 @@ public: // Public Interface
 	bool areThereAnyFriendsAt(int xPos, int yPos, entityType whatColorIAm);
 	void updateBullets();
 	void makeBullet(RVB_Bullet* newBullet);
+	bool isThereAnObstacleAt(double x, double y);
 };
 
 

@@ -1,5 +1,6 @@
 #include "RVB_Map.h"
 #include "oglGameVars.h"
+#include "math.h"
 
 //====================
 // Constructors
@@ -618,20 +619,25 @@ void RVB_Map::drawFog(int tileWidth, double scaleFactor, double mapOffsetX, doub
 				int entityX = objectList[entX]->getXPos();
 				int entityY = objectList[entX]->getYPos();
 
-				for(int x = (entityX * uberFactor) - (visionCalc * uberFactor); x < (entityX * uberFactor) + ((visionCalc + 1) * uberFactor); x++)
+				for(double x = (entityX * uberFactor) - (visionCalc * uberFactor); x < (entityX * uberFactor) + ((visionCalc + 1) * uberFactor); x+= 1)
 				{ 
-					for(int y = (entityY * uberFactor) - (visionCalc * uberFactor); y < (entityY * uberFactor) + ((visionCalc + 1) * uberFactor); y++)
+					for(double y = (entityY * uberFactor) - (visionCalc * uberFactor); y < (entityY * uberFactor) + ((visionCalc + 1) * uberFactor); y+= 1)
 					{
 						if((x >= 0) && (x < mapWidth * uberFactor) && 
 						   (y >= 0) && (y < mapHeight * uberFactor))
 						{
 							double distanceToTarget = GameVars->getDistanceToTarget(x, y, (entityX + 0.25) * uberFactor, (entityY + 0.25) * uberFactor);
-							if(distanceToTarget <= visionCalc * uberFactor)
+							
+							if ((mBoard[x / uberFactor][y / uberFactor]->getTileType() == TT_OBSTACLE) ||
+								(objectList[entX]->entityCanSeeTargetAt(x / uberFactor, y / uberFactor)))
 							{
-								myFog[x][y] -= (1.0/uberFactor * (((visionCalc * uberFactor + 1) - distanceToTarget)) / visionCalc * uberFactor);
-								if(myFog[x][y] < 0)
+								if(distanceToTarget <= visionCalc * uberFactor)
 								{
-									myFog[x][y] = 0;
+									myFog[x][y] -= (1.0/uberFactor * (((visionCalc * uberFactor + 1) - distanceToTarget)) / visionCalc * uberFactor);
+									if(myFog[x][y] < 0)
+									{
+										myFog[x][y] = 0;
+									}
 								}
 							}
 						}
@@ -666,4 +672,13 @@ void RVB_Map::drawEntities(int tileWidth, double scaleFactor, int mapOffsetX, in
 	{
 		objectList[xi]->Draw(tileWidth, scaleFactor, mapOffsetX, mapOffsetY);
 	}
+}
+
+bool RVB_Map::isThereAnObstacleAt(double x, double y)
+{
+	if(mBoard[floor(x)][floor(y)]->getTileType() == TT_OBSTACLE)
+	{
+		return true;
+	}
+	return false;
 }

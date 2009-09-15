@@ -48,6 +48,7 @@ public:
 	void setHealth(int health_n);
 	void drawEntityTarget(int tileWidth, double scaleFactor, double mapOffsetX, double mapOffsetY);
 	void reload(int bullets);
+	bool entityCanSeeTargetAt(double targetXn, double targetYn);
 	
 private:
 	double xPos;
