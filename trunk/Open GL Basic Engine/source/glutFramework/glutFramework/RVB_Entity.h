@@ -49,6 +49,11 @@ public:
 	void drawEntityTarget(int tileWidth, double scaleFactor, double mapOffsetX, double mapOffsetY);
 	void reload(int bullets);
 	bool entityCanSeeTargetAt(double targetXn, double targetYn);
+	higherState getHigherState();
+	entityState	getLowerState();
+
+	void setMoveTargetToHidingSpotFrom(RVB_Entity* someEntity);				// sets move target to a hiding spot, otherwise sets move target to -1 if no hiding spot found
+	void setMoveTargetToVisibleHidingSpotFrom(RVB_Entity* sometEntity);		// sets move target to a hiding spot, otherwise sets move target to -1 if no hiding spot found
 	
 private:
 	double xPos;
@@ -100,10 +105,18 @@ private:
 
 	void doMove();		// old update loop, now just for moving
 	void performBrainFunction();
-	void doEnemyScan();
+	void doEnemyScan();						// looks for an enemy and targets the closest one
+	bool isAnyoneLookingAtMe();				// checks if there's any enemies that are targetting me
+	bool isAnyoneLookingAtMeThatICanSee();	// checks if there's any enemies that are targetting me that i can actually see
+	bool isAnyoneChasingMe();				// checks if there's any enemies that are chasing me
+	bool isAnyoneChasingMeThatICanSee();	// checks if there's any enemies thar are chasing me that i can see
+	bool isMyTargetChasingMe();				// checks if my currently selected target is chasing me
+	bool isThisEntityVisibleToMyTeam(RVB_Entity* someEntity);	// pass in an entity pointer it lets you know if that entity is visible to your team
+	bool isThisSpotVisibleToMyTeam(double checkX, double checkY);	// pass in an x/y coord to see if that spot is visible to your team
+	RVB_Entity* getEntityTarget();			// returns a pointer to your currently selected entity pointer
 
-	bool scanned;
-	int scanDelay;
+	bool scanned;		// internal shit for scanning
+	int scanDelay;		// delay for scanning
 	bool canStillSeeEnemy();
 };
 

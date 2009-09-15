@@ -189,8 +189,8 @@ void RVB_Entity::doEnemyScan()
 			if((*objectList)[x]->getHealth() > 0)
 			{
 				// we've found an enemy!, lets check its distance
-				int enemyX = (*objectList)[x]->getXPos();
-				int enemyY = (*objectList)[x]->getYPos();
+				double enemyX = (*objectList)[x]->getXPos();
+				double enemyY = (*objectList)[x]->getYPos();
 				double distanceToTarget = GameVars->getDistanceToTarget(xPos, yPos, enemyX, enemyY);
 				if(distanceToTarget < closestDistance)
 				{
@@ -199,8 +199,8 @@ void RVB_Entity::doEnemyScan()
 					{
 						if((*objectList)[innerX]->getType() == type)
 						{
-							int friendlyX = (*objectList)[innerX]->getXPos();
-							int friendlyY = (*objectList)[innerX]->getYPos();
+							double friendlyX = (*objectList)[innerX]->getXPos();
+							double friendlyY = (*objectList)[innerX]->getYPos();
 							double distanceFriendlyToEnemy = GameVars->getDistanceToTarget(friendlyX, friendlyY, enemyX, enemyY);
 							// we've found a friendly, lets see if its within vision radius of the enemy
 							if(distanceFriendlyToEnemy <= entityVisionRadius)
@@ -226,16 +226,16 @@ void RVB_Entity::doEnemyScan()
 
 bool RVB_Entity::canStillSeeEnemy()
 {
-	int enemyX = myEntityTarget->getXPos();
-	int enemyY = myEntityTarget->getYPos();
+	double enemyX = myEntityTarget->getXPos();
+	double enemyY = myEntityTarget->getYPos();
 	int numEntities = (*objectList).size();
 
 	for(int innerX = 0; innerX < numEntities; innerX++)
 	{
 		if((*objectList)[innerX]->getType() == type)
 		{
-			int friendlyX = (*objectList)[innerX]->getXPos();
-			int friendlyY = (*objectList)[innerX]->getYPos();
+			double friendlyX = (*objectList)[innerX]->getXPos();
+			double friendlyY = (*objectList)[innerX]->getYPos();
 			double distanceFriendlyToEnemy = GameVars->getDistanceToTarget(friendlyX, friendlyY, enemyX, enemyY);
 			// we've found a friendly, lets see if its within vision radius of the enemy
 			if((distanceFriendlyToEnemy <= entityVisionRadius) &&
@@ -914,4 +914,252 @@ bool RVB_Entity::entityCanSeeTargetAt(double targetXn, double targetYn)
 		//cout << "----------------------------------------------------------------------" << endl;
 	}
 	return true;
+}
+
+
+
+
+RVB_Entity* RVB_Entity::getEntityTarget()
+{
+	return myEntityTarget;
+}
+
+bool RVB_Entity::isAnyoneLookingAtMe()
+{
+	int numEntities = (*objectList).size();
+	for(int x = 0; x < numEntities; x++)
+	{
+		if( ((*objectList)[x]->getHealth() > 0) &&			// is it alive?
+			((*objectList)[x]->getType() != type) &&		// is it an enemy
+			((*objectList)[x]->getEntityTarget() == this))	// is it looking at me?
+		{
+			return true;
+		}					
+	}
+	return false;
+}
+
+bool RVB_Entity::isThisEntityVisibleToMyTeam(RVB_Entity* someEntity)
+{
+	// we've found an enemy!, lets check its distance
+	double enemyX = someEntity->getXPos();
+	double enemyY = someEntity->getYPos();
+	double distanceToTarget = GameVars->getDistanceToTarget(xPos, yPos, enemyX, enemyY);
+
+	// can i see it?
+	if (distanceToTarget < entityVisionRadius)
+	{
+		// do i still have los to it...
+		if(entityCanSeeTargetAt(enemyX, enemyY))
+		{
+			return true;
+		}
+	}
+	else
+	{
+		int numEntities = (*objectList).size();
+		// can anyone else on my team see it?
+		for(int innerX = 0; innerX < numEntities; innerX++)
+		{
+			if((*objectList)[innerX]->getType() == type)
+			{
+				double friendlyX = (*objectList)[innerX]->getXPos();
+				double friendlyY = (*objectList)[innerX]->getYPos();
+				double distanceFriendlyToEnemy = GameVars->getDistanceToTarget(friendlyX, friendlyY, enemyX, enemyY);
+				// we've found a friendly, lets see if its within vision radius of the enemy
+				if(distanceFriendlyToEnemy <= entityVisionRadius)
+				{
+					//cout << "found an enemy that's close and visible" << endl;
+					// ok now we have the closest enemy so far and its within a friendly entity's vision radius
+					// *********************************************
+					// RIGHT HERE IS WHERE LINE OF SIGHT GOES, FOR NOW WE IGNORE IT
+					// *********************************************
+					if((*objectList)[innerX]->entityCanSeeTargetAt(enemyX, enemyY))
+					{
+						return true;
+					}
+				}
+			}
+		}
+	}
+	return false;
+}
+
+bool RVB_Entity::isThisSpotVisibleToMyTeam(double checkX, double checkY)
+{
+	// we've found an enemy!, lets check its distance
+	double distanceToTarget = GameVars->getDistanceToTarget(xPos, yPos, checkX, checkY);
+
+	// can i see it?
+	if (distanceToTarget < entityVisionRadius)
+	{
+		// do i still have los to it...
+		if(entityCanSeeTargetAt(checkX, checkY))
+		{
+			return true;
+		}
+	}
+	else
+	{
+		int numEntities = (*objectList).size();
+		// can anyone else on my team see it?
+		for(int innerX = 0; innerX < numEntities; innerX++)
+		{
+			if((*objectList)[innerX]->getType() == type)
+			{
+				int friendlyX = (*objectList)[innerX]->getXPos();
+				int friendlyY = (*objectList)[innerX]->getYPos();
+				double distanceFriendlyToEnemy = GameVars->getDistanceToTarget(friendlyX, friendlyY, checkX, checkY);
+				// we've found a friendly, lets see if its within vision radius of the enemy
+				if(distanceFriendlyToEnemy <= entityVisionRadius)
+				{
+					//cout << "found an enemy that's close and visible" << endl;
+					// ok now we have the closest enemy so far and its within a friendly entity's vision radius
+					// *********************************************
+					// RIGHT HERE IS WHERE LINE OF SIGHT GOES, FOR NOW WE IGNORE IT
+					// *********************************************
+					if((*objectList)[innerX]->entityCanSeeTargetAt(checkX, checkY))
+					{
+						return true;
+					}
+				}
+			}
+		}
+	}
+	return false;
+}
+
+
+bool RVB_Entity::isAnyoneLookingAtMeThatICanSee()
+{
+	int numEntities = (*objectList).size();
+
+	for(int x = 0; x < numEntities; x++)
+	{
+		if( ((*objectList)[x]->getHealth() > 0) &&				// is it alive?
+			((*objectList)[x]->getType() != type) &&			// is it an enemy
+			((*objectList)[x]->getEntityTarget() == this) &&	// is it looking at me?
+			(isThisEntityVisibleToMyTeam((*objectList)[x])) )	// is it visible to my team?
+		{
+			return true;
+		}					
+	}
+	return false;
+}
+
+bool RVB_Entity::isAnyoneChasingMe()
+{
+	int numEntities = (*objectList).size();
+	for(int x = 0; x < numEntities; x++)
+	{
+		if( ((*objectList)[x]->getHealth() > 0) &&				// is it alive?
+			((*objectList)[x]->getType() != type) &&			// is it an enemy
+			((*objectList)[x]->getEntityTarget() == this) &&	// is it looking at me?
+			((*objectList)[x]->getHigherState() == CHASING))	// is it chasing me?
+		{
+			return true;
+		}					
+	}
+	return false;
+}
+
+higherState RVB_Entity::getHigherState()
+{
+	return myHigherState;
+}
+entityState	RVB_Entity::getLowerState()
+{
+	return myLowerState;
+}
+
+bool RVB_Entity::isAnyoneChasingMeThatICanSee()
+{
+	int numEntities = (*objectList).size();
+	for(int x = 0; x < numEntities; x++)
+	{
+		if( ((*objectList)[x]->getHealth() > 0) &&				// is it alive?
+			((*objectList)[x]->getType() != type) &&			// is it an enemy
+			((*objectList)[x]->getEntityTarget() == this) &&	// is it looking at me?
+			((*objectList)[x]->getHigherState() == CHASING)	&&	// is it chasing me?
+			(isThisEntityVisibleToMyTeam((*objectList)[x])) )	// is it visible to my team?
+		{
+			return true;
+		}					
+	}
+	return false;
+}
+
+bool RVB_Entity::isMyTargetChasingMe()
+{
+	if( (myEntityTarget->getHealth() > 0) &&					// is it alive?
+		(myEntityTarget->getType() != type) &&					// is it an enemy
+		(myEntityTarget->getEntityTarget() == this) &&			// is it looking at me?
+		(myEntityTarget->getHigherState() == CHASING))			// is it chasing me?
+	{
+		return true;
+	}			
+	return false;
+}
+
+void RVB_Entity::setMoveTargetToHidingSpotFrom(RVB_Entity* someEntity)
+{
+	// what we're going to do is iterate through the entire board and 
+	// see if there's any spots that are out of line of sight from the enemy, if so...
+	// we're going to see if its the closest spot, we're doing stupid ai so this is lazy searching
+
+	targetX = -1;
+	targetY = -1;
+
+	double boardWidth = board->getBoardWidth();
+	double boardHeight = board->getBoardHeight();
+
+	double bestDistanceSoFar = boardWidth * boardHeight; // something stupidly high to start with
+	double distanceToTarget = 0;
+
+	for(int x = 0; x < boardWidth; x++)
+	{
+		for(int y = 0; y < boardHeight; y++)
+		{
+			if(!someEntity->entityCanSeeTargetAt(x, y))	// if someEntity cannot see target at x y we have a potential winner
+			{
+				distanceToTarget = GameVars->getDistanceToTarget(xPos, yPos, x, y);
+				if(distanceToTarget < bestDistanceSoFar)
+				{
+					bestDistanceSoFar = distanceToTarget;
+					targetX = x;
+					targetY = y;
+				}
+			}
+		}
+	}
+}
+void RVB_Entity::setMoveTargetToVisibleHidingSpotFrom(RVB_Entity* someEntity)
+{
+	// this will almost be a copy/paste of above only now it will include the extra check to see if we can see this spot... 
+	targetX = -1;
+	targetY = -1;
+
+	double boardWidth = board->getBoardWidth();
+	double boardHeight = board->getBoardHeight();
+
+	double bestDistanceSoFar = boardWidth * boardHeight; // something stupidly high to start with
+	double distanceToTarget = 0;
+
+	for(int x = 0; x < boardWidth; x++)
+	{
+		for(int y = 0; y < boardHeight; y++)
+		{
+			if(!someEntity->entityCanSeeTargetAt(x, y))	// if someEntity cannot see target at x y we have a potential winner
+			{
+				distanceToTarget = GameVars->getDistanceToTarget(xPos, yPos, x, y);
+				if((distanceToTarget < bestDistanceSoFar) &&
+				   (isThisSpotVisibleToMyTeam(x, y)) )
+				{
+					bestDistanceSoFar = distanceToTarget;
+					targetX = x;
+					targetY = y;
+				}
+			}
+		}
+	}
 }
