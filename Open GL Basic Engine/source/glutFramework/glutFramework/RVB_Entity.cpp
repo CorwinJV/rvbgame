@@ -1,5 +1,6 @@
 #include "RVB_entity.h" 
 #include "RVB_Map.h"
+#include "math.h"
 
 //		FUN NAME  rvbWeapon(dmg, range, clip, ammo,       type,		firing rate, reload time)
 #define RVBPISTOL rvbWeapon(10,      6,   10,   10, WEAPON_PISTOL,	1000,		 1000);
@@ -9,6 +10,10 @@
 
 void RVB_Entity::Update()
 {
+	if(health <= 0)
+	{
+		return;
+	}
 	// Query how long it's been since our last update
 	timeSinceLastUpdate = clock() - timeOfLastUpdate;
 	timeSinceLastFire   = clock() - timeOfLastFire;
@@ -180,30 +185,37 @@ void RVB_Entity::doEnemyScan()
 	{
 		if((*objectList)[x]->getType() != type)
 		{
-			// we've found an enemy!, lets check its distance
-			int enemyX = (*objectList)[x]->getXPos();
-			int enemyY = (*objectList)[x]->getYPos();
-			double distanceToTarget = GameVars->getDistanceToTarget(xPos, yPos, enemyX, enemyY);
-			if(distanceToTarget < closestDistance)
+			// is it alive?
+			if((*objectList)[x]->getHealth() > 0)
 			{
-				// we have found the closest enemy, lets see if we can see him...
-				for(int innerX = 0; innerX < numEntities; innerX++)
+				// we've found an enemy!, lets check its distance
+				int enemyX = (*objectList)[x]->getXPos();
+				int enemyY = (*objectList)[x]->getYPos();
+				double distanceToTarget = GameVars->getDistanceToTarget(xPos, yPos, enemyX, enemyY);
+				if(distanceToTarget < closestDistance)
 				{
-					if((*objectList)[innerX]->getType() == type)
+					// we have found the closest enemy, lets see if we can see him...
+					for(int innerX = 0; innerX < numEntities; innerX++)
 					{
-						int friendlyX = (*objectList)[innerX]->getXPos();
-						int friendlyY = (*objectList)[innerX]->getYPos();
-						double distanceFriendlyToEnemy = GameVars->getDistanceToTarget(friendlyX, friendlyY, enemyX, enemyY);
-						// we've found a friendly, lets see if its within vision radius of the enemy
-						if(distanceFriendlyToEnemy <= entityVisionRadius)
+						if((*objectList)[innerX]->getType() == type)
 						{
-							//cout << "found an enemy that's close and visible" << endl;
-							// ok now we have the closest enemy so far and its within a friendly entity's vision radius
-							// *********************************************
-							// RIGHT HERE IS WHERE LINE OF SIGHT GOES, FOR NOW WE IGNORE IT
-							// *********************************************
-							myEntityTarget = board->getSelectableEntityAtGridCoord(enemyX, enemyY);
-							closestDistance = distanceToTarget;
+							int friendlyX = (*objectList)[innerX]->getXPos();
+							int friendlyY = (*objectList)[innerX]->getYPos();
+							double distanceFriendlyToEnemy = GameVars->getDistanceToTarget(friendlyX, friendlyY, enemyX, enemyY);
+							// we've found a friendly, lets see if its within vision radius of the enemy
+							if(distanceFriendlyToEnemy <= entityVisionRadius)
+							{
+								//cout << "found an enemy that's close and visible" << endl;
+								// ok now we have the closest enemy so far and its within a friendly entity's vision radius
+								// *********************************************
+								// RIGHT HERE IS WHERE LINE OF SIGHT GOES, FOR NOW WE IGNORE IT
+								// *********************************************
+								if(entityCanSeeTargetAt(enemyX, enemyY))
+								{
+									myEntityTarget = board->getSelectableEntityAtGridCoord(enemyX, enemyY);
+									closestDistance = distanceToTarget;
+								}
+							}
 						}
 					}
 				}
@@ -226,13 +238,16 @@ bool RVB_Entity::canStillSeeEnemy()
 			int friendlyY = (*objectList)[innerX]->getYPos();
 			double distanceFriendlyToEnemy = GameVars->getDistanceToTarget(friendlyX, friendlyY, enemyX, enemyY);
 			// we've found a friendly, lets see if its within vision radius of the enemy
-			if(distanceFriendlyToEnemy <= entityVisionRadius)
+			if((distanceFriendlyToEnemy <= entityVisionRadius) &&
+			   (entityCanSeeTargetAt(enemyX, enemyY)) &&
+			   (myEntityTarget->getHealth() > 0))
 			{
 			//	cout << "found an enemy that's close and visible" << endl;
 				// ok now we have the closest enemy so far and its within a friendly entity's vision radius
 				// *********************************************
 				// RIGHT HERE IS WHERE LINE OF SIGHT GOES, FOR NOW WE IGNORE IT
 				// *********************************************
+			
 				return true;
 			}
 		}
@@ -815,4 +830,88 @@ void RVB_Entity::reload(int bullets)
 			currentWeapon = myWeapon1;
 		}
 	}
+}
+
+bool RVB_Entity::entityCanSeeTargetAt(double targetXn, double targetYn)
+{
+	// if they ask if you can see yourself, just say yeah we can
+	if((targetXn == xPos) && (targetYn == yPos))
+	{
+		return true;
+	}
+	// we are going to make two assumptions
+	// that our xpos is based on our top left
+	// that their target is based off of it's top left
+	
+
+	double storedTargetX = targetXn;// + 0.5;
+	double storedTargetY = targetYn;// + 0.5;
+
+	double movingCheckerX = xPos;// + 0.5;
+	double movingCheckerY = yPos;// + 0.5;
+
+	double incrementX = targetXn - xPos;
+	double incrementY = targetYn - yPos;
+
+
+	double magicNumber = max(GameVars->dAbs(incrementX), GameVars->dAbs(incrementY));
+
+	if(magicNumber != 0)	// damned black holes
+	{
+		magicNumber = 1/magicNumber;
+	}
+
+	incrementX *= magicNumber;
+	incrementY *= magicNumber;
+
+	/*if(incrementX > 0)
+	{
+		movingCheckerX += 0.5;
+	}
+	if(incrementX < 0)
+	{
+		movingCheckerX -= 0.5;
+	}
+	if(incrementY > 0)
+	{
+		movingCheckerY += 0.5;
+	}
+	if(incrementY <0)
+	{
+		movingCheckerY -= 0.5;
+	}*/
+
+	// so now we have in an increment of 1 for our larger number and some percentage of this for the other number
+	bool done = false;
+
+	//cout << "Source = " << xPos << ", " << yPos << " and target = " << targetXn << ", " << targetYn << endl;
+	//cout << "increment X/y = " << incrementX << ", " << incrementY << endl;
+
+	while(!done)
+	{
+		if( (movingCheckerX >= 0) && (floor(movingCheckerX) < board->getBoardWidth()) &&
+			(movingCheckerY >= 0) && (floor(movingCheckerY) < board->getBoardHeight()) )
+		{
+			if(board->isThereAnObstacleAt(movingCheckerX, movingCheckerY))
+			{
+				return false;
+			}
+		}
+
+		if( ((movingCheckerX > storedTargetX - incrementX) && (movingCheckerX > xPos)) ||
+			((movingCheckerX < storedTargetX - incrementX) && (movingCheckerX < xPos)) ||
+			((movingCheckerY > storedTargetY - incrementY) && (movingCheckerY > yPos)) ||
+			((movingCheckerY < storedTargetY  - incrementY) && (movingCheckerY < yPos)) ||
+			((movingCheckerX == storedTargetX - incrementX) && (movingCheckerY == storedTargetY - incrementY))
+			)
+		{
+			done = true;
+		}
+		//cout << "MovingCheckerX/y " << movingCheckerX << ", " << movingCheckerY << endl;
+		movingCheckerX += incrementX;
+		movingCheckerY += incrementY;
+		//cout << "MovingCheckerX/y " << movingCheckerX << ", " << movingCheckerY << endl;
+		//cout << "----------------------------------------------------------------------" << endl;
+	}
+	return true;
 }
