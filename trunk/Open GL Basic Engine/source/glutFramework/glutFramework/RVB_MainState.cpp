@@ -479,6 +479,8 @@ void RVB_MainState::keyboardInput(unsigned char c, int x, int y)
 {
 	curMouseX = x;
 	curMouseY = y;
+
+	int size = 0;
 	
 	//================================
 	// Regular Keys
@@ -546,6 +548,15 @@ void RVB_MainState::keyboardInput(unsigned char c, int x, int y)
 		break;
 	case 'h':
 		healSelectedEntities();
+		break;
+	case '1':
+		// set to the size of the selected Entity list
+		size = selectedEntityList->size();
+		for(int x = 0; x < size; x++)
+		{
+			// set any entity that is selected to attack optimal state
+			currentMap->setToAttackOptimal((*selectedEntityList)[x]);
+		}
 		break;
 	default:
 		break;

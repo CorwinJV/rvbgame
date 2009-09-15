@@ -48,6 +48,7 @@ int rvbWeapon::getRange()
 	return range;
 }
 
+// returns how fast the gun can be fired
 int rvbWeapon::getFireRate()
 {
 	return firingRate;
@@ -90,11 +91,13 @@ int rvbWeapon::getAmmoLeftInClip()
 	return clipAmmo;
 }
 
+// return the type of weapon you are using
 RVB_WeaponType rvbWeapon::getType()
 {
 	return type;
 }
 
+// returns how long it takes to reload the weapon
 int rvbWeapon::getReloadTime()
 {
 	return reloadTime;
@@ -146,7 +149,7 @@ int rvbWeapon::reload(int ammoLeft, int ammoInClip, RVB_WeaponType type_n)
 
 RVB_Bullet* rvbWeapon::shotFired(double xPos, double yPos, double targetX, double targetY)
 {
-	// this function needs to be tweaked to account for firing at enemies to the left of you
+	// these two lines of code takes into account enemies firing to the left of you
 	double tempX = GameVars->dAbs(targetX - xPos);
 	double tempY = GameVars->dAbs(targetY - yPos);
 

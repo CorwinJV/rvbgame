@@ -249,6 +249,7 @@ RVB_Entity *RVB_Map::getSelectableEntityAtGridCoord(int gridX, int gridY)
 void RVB_Map::didBulletHitSomething()
 {
 	int size = bulletList.size();
+	//int mapSize  = mBoard.size();
 	bool hit = false;
 	double tempDamage   = 0.0;
 	double tempRange    = 0.0;
@@ -258,7 +259,15 @@ void RVB_Map::didBulletHitSomething()
 	// cycle through the bullets on the screen
 	for(int x = 0; x < size; x++)
 	{
-		// see if any of them has hit anything on the screen
+		// first check to make sure we haven't hit an obstacle along the way
+		if(hit = isThereAnObstacleAt(bulletList[x]->getBulletXPos(), bulletList[x]->getBulletYPos()))
+		{
+			cout << "Bullet hit an obstacle" << endl;
+			// deactivate the bullet
+			bulletList[x]->setActive(!hit);
+		}
+
+		// see if any of them has hit an entity on the screen
 		if(hit = isThereAnEntityAt(bulletList[x]->getBulletXPos(), bulletList[x]->getBulletYPos()))
 		{
 			// get all the bullet info
@@ -681,4 +690,10 @@ bool RVB_Map::isThereAnObstacleAt(double x, double y)
 		return true;
 	}
 	return false;
+}
+
+void RVB_Map::setToAttackOptimal(RVB_Entity* setThisOne)
+{
+	RVB_Entity* temp = setThisOne;
+	temp->setState(ATTACKOPTIMAL);
 }
