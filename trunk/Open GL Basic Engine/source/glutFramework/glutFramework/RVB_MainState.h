@@ -29,12 +29,22 @@ private:
 	int curMouseY;
 	bool isLeftMouseDown;
 
+	int tileWidth;
+	double scaleFactor;
+	double mapOffsetX;
+	double mapOffsetY;
+
 	//RVB_Entity* selectedEntity;
 	vector<RVB_Entity*>* selectedEntityList;
 
 public:
 	bool Update();
 	bool Draw();
+
+	void drawEntityTargets();
+	void drawEntitySelectionCircles();
+	void drawMoveTargets();
+	void drawMultiSelectionBox();
 
 	void toggleSelectedEntity(RVB_Entity* entityToToggle);
 	void setSelectedEntitiesTargets(int tX, int tY);

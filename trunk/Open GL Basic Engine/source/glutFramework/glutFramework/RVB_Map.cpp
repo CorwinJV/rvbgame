@@ -29,9 +29,13 @@ RVB_Map::RVB_Map(int mapSizeX, int mapSizeY)
 	// Set up our 2 dim vector with 
 	// null pointers 
 	mBoard.resize(mapSizeX);
+	redKnowledgeMap.resize(mapSizeX);
+	blueKnowledgeMap.resize(mapSizeX);
 	for(int x = 0; x < mapSizeX; x++)
 	{
 		mBoard[x].resize(mapSizeY);
+		redKnowledgeMap[x].resize(mapSizeY);
+		blueKnowledgeMap[x].resize(mapSizeY);
 	}
 
 	//=================================
@@ -43,6 +47,8 @@ RVB_Map::RVB_Map(int mapSizeX, int mapSizeY)
 		for(int j = 0; j < mapSizeY; j++)
 		{
 			mBoard[i][j] = new RVB_MapTile(TT_DEFAULT);
+			redKnowledgeMap[i][j] = new RVB_MapTile(TT_NULL);
+			blueKnowledgeMap[i][j] = new RVB_MapTile(TT_NULL);
 		}
 	}
 
@@ -89,12 +95,13 @@ void RVB_Map::Draw()
 	// Iterate through map tiles
 		// Switch to determine which picture to draw (enum)
 		// draw at position offset by height / width
-	
-	for(int x = 0; x < (int)mBoard.size(); x++)
+	oglTexture2D* imgToDraw = NULL;
+
+	for(int x = 0; x < mapWidth; x++)
 	{
-		for(int y = 0; y < (int)mBoard[x].size(); y++)
+		for(int y = 0; y < mapHeight; y++)
 		{
-			oglTexture2D* imgToDraw = NULL;
+			imgToDraw = NULL;
 			switch(mBoard[x][y]->getTileType())
 			{
 
@@ -132,13 +139,18 @@ void RVB_Map::Draw()
 									((x*tileWidth)*scaleFactor)+mapOffsetX,  // X
 									((y*tileWidth)*scaleFactor)+mapOffsetY); // Y
 				
-				imgToDraw->rotationInDeg = 0.0;
+				//imgToDraw->rotationInDeg = 0.0;
 			}
 		}
 	}
 
 	drawText();	
 
+	
+}
+
+void RVB_Map::drawBullets()
+{
 	// finally we draws us some bullets yo!
 	int tempSize = bulletList.size();
 
@@ -615,6 +627,19 @@ void RVB_Map::drawFog(int tileWidth, double scaleFactor, double mapOffsetX, doub
 
 	// now lets go and unfog some areas
 
+	vector<vector<RVB_MapTile*>> *knowledgeMapToUse = NULL;
+	switch(GameVars->mySide)
+	{
+	case RED:
+		knowledgeMapToUse = &redKnowledgeMap;
+		break;
+	case BLUE:
+		knowledgeMapToUse = &blueKnowledgeMap;
+		break;
+	default:
+		break;
+	}
+
 	if(GameVars->mySide != GOD)
 	{
 		double visionCalc = entityVisionRadius + 1;
@@ -637,18 +662,27 @@ void RVB_Map::drawFog(int tileWidth, double scaleFactor, double mapOffsetX, doub
 						{
 							double distanceToTarget = GameVars->getDistanceToTarget(x, y, (entityX + 0.25) * uberFactor, (entityY + 0.25) * uberFactor);
 							
-							if ((mBoard[x / uberFactor][y / uberFactor]->getTileType() == TT_OBSTACLE) ||
+							/*if ((mBoard[x / uberFactor][y / uberFactor]->getTileType() == TT_OBSTACLE)) ||
 								(objectList[entX]->entityCanSeeTargetAt(x / uberFactor, y / uberFactor)))
-							{
+							{*/
 								if(distanceToTarget <= visionCalc * uberFactor)
 								{
 									myFog[x][y] -= (1.0/uberFactor * (((visionCalc * uberFactor + 1) - distanceToTarget)) / visionCalc * uberFactor);
+									
+									// updating knowledge map
+									if(myFog[(int)(x / uberFactor)][(int)(y / uberFactor)] < 0.5)
+									{
+										// if we can see this tile well enough to see what's there..
+										(*knowledgeMapToUse)[(int)(x / uberFactor)][(int)(y / uberFactor)]->setTileType(mBoard[(int)(x / uberFactor)][(int)(y / uberFactor)]->getTileType());
+
+									}
+
 									if(myFog[x][y] < 0)
 									{
 										myFog[x][y] = 0;
 									}
 								}
-							}
+							//}
 						}
 					}
 				}
@@ -658,19 +692,46 @@ void RVB_Map::drawFog(int tileWidth, double scaleFactor, double mapOffsetX, doub
 	// now lets draw the fog!
 	// set fog dimensions
 
-	for(int x = 0; x < mapWidth * uberFactor; x++)
+	if(knowledgeMapToUse != NULL)
 	{
-		for(int y = 0; y < mapHeight * uberFactor; y++)
+		for(int x = 0; x < mapWidth * uberFactor; x++)
 		{
-
-			// now draw it
-			GameVars->fog->drawImageFaded(myFog[x][y],
-											(tileWidth*scaleFactor / uberFactor),			 // Width
-											(tileWidth*scaleFactor / uberFactor),			 // Height
-											((x*tileWidth)*scaleFactor / uberFactor )+mapOffsetX,  // X
-											((y*tileWidth)*scaleFactor / uberFactor )+mapOffsetY); // Y
-		}
-	}	
+			for(int y = 0; y < mapHeight * uberFactor; y++)
+			{
+				// now draw it
+				if((*knowledgeMapToUse)[(int)(x / uberFactor)][(int)(y / uberFactor)]->getTileType() == TT_NULL)
+				{
+					GameVars->fog->drawImageFaded(myFog[x][y],
+												(tileWidth*scaleFactor / uberFactor),			 // Width
+												(tileWidth*scaleFactor / uberFactor),			 // Height
+												((x*tileWidth)*scaleFactor / uberFactor )+mapOffsetX,  // X
+												((y*tileWidth)*scaleFactor / uberFactor )+mapOffsetY); // Y
+				}
+				else
+				{
+					// this is where knowledge map said to go ahead and draw what's here... we need to see if there's an enemy unit here
+					// if there is, we need to redraw the tile first...
+					
+					if(myFog[x][y] <= 0.5)
+					{
+						GameVars->fog->drawImageFaded(myFog[x][y],
+												(tileWidth*scaleFactor / uberFactor),			 // Width
+												(tileWidth*scaleFactor / uberFactor),			 // Height
+												((x*tileWidth)*scaleFactor / uberFactor )+mapOffsetX,  // X
+												((y*tileWidth)*scaleFactor / uberFactor )+mapOffsetY); // Y
+					}
+					else
+					{
+						GameVars->fog->drawImageFaded(0.5,
+												(tileWidth*scaleFactor / uberFactor),			 // Width
+												(tileWidth*scaleFactor / uberFactor),			 // Height
+												((x*tileWidth)*scaleFactor / uberFactor )+mapOffsetX,  // X
+												((y*tileWidth)*scaleFactor / uberFactor )+mapOffsetY); // Y
+					}
+				}
+			}
+		}	
+	}
 }
 
 void RVB_Map::drawEntities(int tileWidth, double scaleFactor, int mapOffsetX, int mapOffsetY)
@@ -696,4 +757,60 @@ void RVB_Map::setToAttackOptimal(RVB_Entity* setThisOne)
 {
 	RVB_Entity* temp = setThisOne;
 	temp->setState(ATTACKOPTIMAL);
+}
+
+void RVB_Map::drawKnowledgeMap(int tileWidth, double scaleFactor, double mapOffsetX, double mapOffsetY)
+{
+	// now lets go and unfog some areas
+
+	vector<vector<RVB_MapTile*>> *knowledgeMapToUse = NULL;
+	switch(GameVars->mySide)
+	{
+	case RED:
+		knowledgeMapToUse = &redKnowledgeMap;
+		break;
+	case BLUE:
+		knowledgeMapToUse = &blueKnowledgeMap;
+		break;
+	default:
+		break;
+	}
+	
+	// Iterate through map tiles
+		// Switch to determine which picture to draw (enum)
+		// draw at position offset by height / width
+	oglTexture2D* imgToDraw = NULL;
+
+	if(knowledgeMapToUse != NULL)
+	{
+		for(int x = 0; x < mapWidth; x++)
+		{
+			for(int y = 0; y < mapHeight; y++)
+			{
+				imgToDraw = NULL;
+				switch((*knowledgeMapToUse)[x][y]->getTileType())
+				{
+
+				case TT_DEFAULT:
+					{
+						imgToDraw = GameVars->rvbTile;
+						break;
+					}
+				case TT_OBSTACLE:
+					{
+						imgToDraw = GameVars->rvbObstacle;
+						break;
+					}
+				}
+
+				if(imgToDraw != NULL)
+				{
+					imgToDraw->drawImage((int)(tileWidth*scaleFactor),			 // Width
+										(int)(tileWidth*scaleFactor),			 // Height
+										((x*tileWidth)*scaleFactor)+mapOffsetX,  // X
+										((y*tileWidth)*scaleFactor)+mapOffsetY); // Y
+				}
+			}
+		}
+	}	
 }

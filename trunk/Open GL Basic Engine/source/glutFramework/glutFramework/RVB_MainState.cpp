@@ -102,39 +102,27 @@ bool RVB_MainState::Update()
 bool RVB_MainState::Draw()
 {
 
-	int tileWidth = currentMap->getTileWidth();
-	double scaleFactor = currentMap->getScale();
-	double mapOffsetX = currentMap->getOffsetX();
-	double mapOffsetY = currentMap->getOffsetY();
+	// update drawing data...
+	tileWidth = currentMap->getTileWidth();
+	scaleFactor = currentMap->getScale();
+	mapOffsetX = currentMap->getOffsetX();
+	mapOffsetY = currentMap->getOffsetY();
+
 
 	// draw the gameboard tiles
 	currentMap->Draw();
+	
+	// draw knowledge map for current team
+	currentMap->drawKnowledgeMap(tileWidth, scaleFactor, mapOffsetX, mapOffsetY);
+
+	// and bullets
+	currentMap->drawBullets();
 
 	// draw reticle around entities being targetted by the currently selected entities
-	vector<RVB_Entity*>::iterator itr = selectedEntityList->begin();
-	for(;itr != selectedEntityList->end(); itr++)
-	{
-		if((*itr) != NULL)
-		{
-			(*itr)->drawEntityTarget(tileWidth, scaleFactor, mapOffsetX, mapOffsetY);
-		}
-	}
+	drawEntityTargets();
 
-	// if we have something selected, draw it selected
-	itr = selectedEntityList->begin();
-	for(;itr != selectedEntityList->end(); itr++)
-	{
-		if((*itr) != NULL)
-		{
-			int xPos = (*itr)->getXPos();
-			int yPos = (*itr)->getYPos();
-
-			GameVars->rvbEntitySelected->drawImage( (int)	(tileWidth*scaleFactor),			 // Width
-													(int)(tileWidth*scaleFactor),			 // Height
-													((xPos*tileWidth)*scaleFactor)+mapOffsetX,  // X
-													((yPos*tileWidth)*scaleFactor)+mapOffsetY); // Y
-		}
-	}
+	// selection circles around the selected entities
+	drawEntitySelectionCircles();
 
 	// now draw all entities
 	currentMap->drawEntities(tileWidth, scaleFactor, mapOffsetX, mapOffsetY);
@@ -144,29 +132,39 @@ bool RVB_MainState::Draw()
 
 
 	// if we have something selected, lets draw the move targets (if it has one)
-	itr = selectedEntityList->begin();
-	for(;itr != selectedEntityList->end(); itr++)
-	{
-		if((*itr) != NULL)
-		{
-			int xPos = (*itr)->getXPos();
-			int yPos = (*itr)->getYPos();
+	drawMoveTargets();
 
-			if((*itr)->getTargetX() != -1)
-			{
-				int targetX = (*itr)->getTargetX();
-				int targetY = (*itr)->getTargetY();
-				GameVars->rvbEntityTarget->drawImage( (int)	(tileWidth*scaleFactor),			 // Width
-													(int)(tileWidth*scaleFactor),			 // Height
-													((targetX*tileWidth)*scaleFactor)+mapOffsetX,  // X
-													((targetY*tileWidth)*scaleFactor)+mapOffsetY); // Y
-			}
-		}
-	}
 
 	////////////////// below here is UI stuff that gets drawn on top of the fog, anything that should be fogged up is before here..
 
 
+	drawMultiSelectionBox();
+
+	// last but not least, draw the header
+	oglTexture2D* tempImg;
+
+	switch(GameVars->mySide)
+	{
+	case RED:
+		tempImg = GameVars->redActive;
+		break;
+	case BLUE:
+		tempImg = GameVars->blueActive;
+		break;
+	case GOD:
+		tempImg = GameVars->godActive;
+		break;
+	}
+
+	tempImg->drawImage(1024, 64, 0, 0);
+
+	
+
+	return true;
+}
+
+void RVB_MainState::drawMultiSelectionBox()
+{
 	//===============================
 	// Multi-Select Selection box 
 	//
@@ -206,28 +204,60 @@ bool RVB_MainState::Draw()
 		// left border
 		GameVars->rvbSelectionPix->drawImage(selectionBoxPixelW, (bottom - top), left, top);
 	}
+}
 
-	// last but not least, draw the header
-	oglTexture2D* tempImg;
-
-	switch(GameVars->mySide)
+void RVB_MainState::drawMoveTargets()
+{
+	vector<RVB_Entity*>::iterator itr = selectedEntityList->begin();
+	for(;itr != selectedEntityList->end(); itr++)
 	{
-	case RED:
-		tempImg = GameVars->redActive;
-		break;
-	case BLUE:
-		tempImg = GameVars->blueActive;
-		break;
-	case GOD:
-		tempImg = GameVars->godActive;
-		break;
+		if((*itr) != NULL)
+		{
+			double xPos = (*itr)->getXPos();
+			double yPos = (*itr)->getYPos();
+
+			if((*itr)->getTargetX() != -1)
+			{
+				double targetX = (*itr)->getTargetX();
+				double targetY = (*itr)->getTargetY();
+				GameVars->rvbEntityTarget->drawImage( (double)	(tileWidth*scaleFactor),			 // Width
+													(double)(tileWidth*scaleFactor),			 // Height
+													((targetX*tileWidth)*scaleFactor)+mapOffsetX,  // X
+													((targetY*tileWidth)*scaleFactor)+mapOffsetY); // Y
+			}
+		}
 	}
+}
 
-	tempImg->drawImage(1024, 64, 0, 0);
+void RVB_MainState::drawEntitySelectionCircles()
+{
+	// if we have something selected, draw it selected
+	vector<RVB_Entity*>::iterator itr = selectedEntityList->begin();
+	for(;itr != selectedEntityList->end(); itr++)
+	{
+		if((*itr) != NULL)
+		{
+			double xPos = (*itr)->getXPos();
+			double yPos = (*itr)->getYPos();
 
-	
+			GameVars->rvbEntitySelected->drawImage( (double)	(tileWidth*scaleFactor),			 // Width
+													(double)(tileWidth*scaleFactor),			 // Height
+													((xPos*tileWidth)*scaleFactor)+mapOffsetX,  // X
+													((yPos*tileWidth)*scaleFactor)+mapOffsetY); // Y
+		}
+	}
+}
 
-	return true;
+void RVB_MainState::drawEntityTargets()
+{
+	vector<RVB_Entity*>::iterator itr = selectedEntityList->begin();
+	for(;itr != selectedEntityList->end(); itr++)
+	{
+		if((*itr) != NULL)
+		{
+			(*itr)->drawEntityTarget(tileWidth, scaleFactor, mapOffsetX, mapOffsetY);
+		}
+	}
 }
 
 //======================
