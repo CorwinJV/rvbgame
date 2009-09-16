@@ -48,6 +48,9 @@ void RVB_Entity::Update()
 				// if we have bullets left to shoot
 				if(bulletsLeft > 0)
 				{
+					// we have bullets, and the firing rate has been checked
+					canIShoot = true;
+
 					// then fire the shot, deduct one from the ammo and set it as the new amount
 					double fireFromX = xPos + 0.5;
 					double fireFromY = yPos + 0.5;
@@ -82,6 +85,8 @@ void RVB_Entity::Update()
 					{
 						// SHOOT!
 						board->makeBullet(currentWeapon->shotFired(fireFromX , fireFromY , fireAtX, fireAtY));
+						// set the gun to unable to shoot
+						canIShoot = false;
 						// log the time of last shot taken
 						timeOfLastFire = clock();
 					}
@@ -93,7 +98,8 @@ void RVB_Entity::Update()
 																	(rand() / 32768.0) - 0.5 + fireAtX, 
 																	(rand() / 32768.0) - 0.5 + fireAtY) );
 						}
-						
+						// set the gun to unable to shoot
+						canIShoot = false;
 						// log the time of last shot taken
 						timeOfLastFire = clock();
 					}
@@ -104,6 +110,9 @@ void RVB_Entity::Update()
 				//otherwise try to reload
 				else
 				{
+					// well we have no bullets, so no we can't shoot
+					canIShoot = false;
+
 					if(timeSinceLastReload > currentWeapon->getReloadTime())
 					{
 						// reset the reload ammo to 0
@@ -149,6 +158,7 @@ void RVB_Entity::Update()
 					}
 				}
 			}
+				
 			break;
 
 		case TAKING_COVER:
@@ -255,8 +265,6 @@ bool RVB_Entity::canStillSeeEnemy()
 	return false;
 }
 
-
-
 void RVB_Entity::performBrainFunction()
 {
 	// this will be replaced with something way cooler than a simple switch statement and if/thens
@@ -264,6 +272,33 @@ void RVB_Entity::performBrainFunction()
 	//enum higherState { CHASING, EVADING, ATTACKMOVE, HIGHERMOVING, HIGHERATTACKING, HIGHERIDLE };
 	myLowerState = IDLE;
 	int scanDelayBy = 5;
+	RVB_Entity* tempEntity = NULL;
+	bool imBeingWatched = false;
+	bool imBeingChased  = false;
+
+	// if my health is lower than 50
+	if(health < 50)
+	{
+		// and there is someone coming at me
+		if(isAnyoneChasingMeThatICanSee())
+		{
+			// run like hell!
+			imBeingChased = true;
+			myHigherState = EVADING;
+		}
+	}
+
+	// if my health is lower than 30
+	if(health < 30)
+	{
+		// and someone is even looking at me
+		if(isAnyoneLookingAtMeThatICanSee())
+		{
+			// run like hell!
+			imBeingWatched = true;
+			myHigherState = EVADING;
+		}
+	}
 
 	switch(myHigherState)
 	{
@@ -272,6 +307,15 @@ void RVB_Entity::performBrainFunction()
 		//this->myEntityTarget
 		if(myEntityTarget != NULL)
 		{
+			// if the guy we're shooting at is dead
+			if(myEntityTarget->getHealth() <= 0)
+			{
+				// then don't shoot at the dead guy
+				myHigherState = HIGHERIDLE;
+				myLowerState = IDLE;
+				break;
+			}
+
 			// if not, move our target spot to the entity's location
 			if( (myEntityTarget->getXPos() != targetX) ||
 				(myEntityTarget->getYPos() != targetY))
@@ -313,6 +357,34 @@ void RVB_Entity::performBrainFunction()
 		break;
 
 	case EVADING:
+		// if someone is chasing me
+		if(imBeingChased)
+		{
+			// find out who it is
+			tempEntity = whoIsChasingMe();
+
+			// make sure that someone is chasing us
+			if(tempEntity != NULL)
+			{
+				// move away from them
+
+			}
+		}
+
+		// if someone is watching me
+		if(imBeingWatched)
+		{
+			// find out who it is
+			tempEntity = whoIsLookingAtMe();
+
+			// make sure that someone is watching us
+			if(tempEntity != NULL)
+			{
+				// move away from them
+
+			}
+		}
+		
 		break;
 
 	case ATTACKMOVE:
@@ -405,10 +477,69 @@ void RVB_Entity::performBrainFunction()
 		break;
 
 	case ATTACKOPTIMAL:
-		cout << "In attack optimal state" << endl;
-		break;
+		//cout << "canIShoot is set to " << canIShoot << endl;
 
+		if(myEntityTarget != NULL)
+		{
+			// if the guy we're shooting at is dead
+			if(myEntityTarget->getHealth() <= 0)
+			{
+				// then don't shoot at the dead guy
+				myHigherState = HIGHERIDLE;
+				myLowerState = IDLE;
+				break;
+			}
+
+			// if not, move our target spot to the entity's location
+			if( (myEntityTarget->getXPos() != targetX) ||
+				(myEntityTarget->getYPos() != targetY))
+			{
+				setTarget(myEntityTarget->getXPos(), myEntityTarget->getYPos());
+			}
+			
+			myLowerState = MOVING;
+			
+			// see if our selected entity target is a good guy or a bad guy
+
+			// if a bad guy...
+			double distanceToTarget = GameVars->getDistanceToTarget(xPos, yPos, targetX, targetY);
+			if(myEntityTarget->getType() != type)
+			{
+				// see if we are in any weapon range of our enemy
+				
+
+				// for now this will just check weapon 1
+				if(distanceToTarget < currentWeapon->getRange())
+				{
+					if(canIShoot)
+					{
+						// if so, set state to attacking
+						myLowerState = ATTACKING;
+						// and break
+						break;
+					}
+				}
+			}
+			else
+			{
+				if(distanceToTarget < 2)
+				{
+					myLowerState = IDLE;
+					break;
+				}
+			}
+		
+			// and if we are in optimal range
+			if(distanceToTarget < (currentWeapon->getRange() / 2))
+			{
+				// then attack
+				myLowerState = ATTACKING;
+			}
+		}
+		break;
 	case EXPLORE:
+		break;
+	case SEEKANDDESTROY:
 		break;
 
 	default:
@@ -754,6 +885,7 @@ RVB_Entity::RVB_Entity(entityType newType, int newX, int newY, entityDirection n
 	board = parentBoard;
 	objectList = boardObjectList;
 	myPath = NULL;
+	canIShoot = true;
 
 	timeOfLastUpdate = clock();
 
@@ -944,6 +1076,66 @@ bool RVB_Entity::isAnyoneLookingAtMe()
 		}					
 	}
 	return false;
+}
+
+RVB_Entity* RVB_Entity::whoIsLookingAtMe()
+{
+	// determine the number of entities to check against
+	int numEntities = (*objectList).size();
+	// if we ever make a 10000x10000 board, then this number needs to get bigger
+	double closest = 1000000.0;
+	double checkClosest  = 0.0;
+	RVB_Entity* thisDudeIsChasinMe = NULL;
+
+	for(int x = 0; x < numEntities; x++)
+	{
+		if( ((*objectList)[x]->getHealth() > 0) &&			// is it alive?
+			((*objectList)[x]->getType() != type) &&		// is it an enemy
+			((*objectList)[x]->getEntityTarget() == this))	// is it looking at me?
+		{
+			// see how far away the guy coming at you is
+			checkClosest = GameVars->getDistanceToTarget(xPos, yPos, (*objectList)[x]->getXPos(), (*objectList)[x]->getYPos());
+			// see if he's the closest to you
+			if(checkClosest < closest)
+			{
+				closest = checkClosest;
+				thisDudeIsChasinMe = (*objectList)[x];
+			}
+		}					
+	}
+
+	// return the pointer whether someone is chasin you or not
+	return thisDudeIsChasinMe;
+}
+
+RVB_Entity* RVB_Entity::whoIsChasingMe()
+{
+	int numEntities = (*objectList).size();
+	// if we ever make a 10000x10000 board, then this number needs to get bigger
+	double closest = 1000000.0;
+	double checkClosest  = 0.0;
+	RVB_Entity* thisDudeIsChasinMe = NULL;
+
+	for(int x = 0; x < numEntities; x++)
+	{
+		if( ((*objectList)[x]->getHealth() > 0) &&				// is it alive?
+			((*objectList)[x]->getType() != type) &&			// is it an enemy
+			((*objectList)[x]->getEntityTarget() == this) &&	// is it looking at me?
+			((*objectList)[x]->getHigherState() == CHASING))	// is it chasing me?
+		{
+			// see how far away the guy coming at you is
+			checkClosest = GameVars->getDistanceToTarget(xPos, yPos, (*objectList)[x]->getXPos(), (*objectList)[x]->getYPos());
+			// see if he's the closest to you
+			if(checkClosest < closest)
+			{
+				closest = checkClosest;
+				thisDudeIsChasinMe = (*objectList)[x];
+			}
+		}					
+	}
+
+	// return the pointer whether someone is chasin you or not
+	return thisDudeIsChasinMe;
 }
 
 bool RVB_Entity::isThisEntityVisibleToMyTeam(RVB_Entity* someEntity)

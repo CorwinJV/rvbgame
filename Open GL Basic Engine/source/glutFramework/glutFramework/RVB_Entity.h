@@ -12,7 +12,7 @@ using namespace std; // syphilis
 enum entityDirection{ NORTH, NORTHEAST, EAST, SOUTHEAST, SOUTH, SOUTHWEST, WEST, NORTHWEST };
 
 enum entityState { ATTACKING, TAKING_COVER, MOVING, IDLE, SCANNING };
-enum higherState { CHASING, EVADING, ATTACKOPTIMAL, ATTACKMOVE, HIGHERMOVING, HIGHERATTACKING, HIGHERIDLE, DEAD, EXPLORE };
+enum higherState { CHASING, EVADING, ATTACKOPTIMAL, ATTACKMOVE, HIGHERMOVING, HIGHERATTACKING, HIGHERIDLE, DEAD, EXPLORE, SEEKANDDESTROY };
 
 // circular dependancies require circular referencing and circular declarations
 class RVB_Map;
@@ -56,13 +56,15 @@ public:
 	void setMoveTargetToVisibleHidingSpotFrom(RVB_Entity* sometEntity);		// sets move target to a hiding spot, otherwise sets move target to -1 if no hiding spot found
 	
 private:
-	double xPos;
-	double yPos;
-	double targetX;
-	double targetY;
-	int health;
+	double xPos;						// the entities current X position
+	double yPos;						// the entities current Y position
+	double targetX;						// the X position of the target entity
+	double targetY;						// the Y position of the target entity
+	int health;							// the entity's health
 	entityDirection facingDirection;
+	bool canIShoot;						// wont let the gun shoot unless firing and reload time limits are satisfied
 
+	// timer variables
 	clock_t timeOfLastUpdate;
 	clock_t timeSinceLastUpdate;
 	clock_t timeOfLastFire;
@@ -71,7 +73,7 @@ private:
 	clock_t timeSinceLastReload;
 	double timeStep;
 
-	entityType type;
+	entityType type;					// which side (red or blue) is the entity on
 	RVB_Map* board;
 	vector<RVB_Entity*>* objectList;
 
@@ -108,8 +110,10 @@ private:
 	void doEnemyScan();						// looks for an enemy and targets the closest one
 	bool isAnyoneLookingAtMe();				// checks if there's any enemies that are targetting me
 	bool isAnyoneLookingAtMeThatICanSee();	// checks if there's any enemies that are targetting me that i can actually see
+	RVB_Entity* whoIsLookingAtMe();			// lets the target know who's looking at them
 	bool isAnyoneChasingMe();				// checks if there's any enemies that are chasing me
 	bool isAnyoneChasingMeThatICanSee();	// checks if there's any enemies thar are chasing me that i can see
+	RVB_Entity* whoIsChasingMe();			// lets the target know who's chasing them
 	bool isMyTargetChasingMe();				// checks if my currently selected target is chasing me
 	bool isThisEntityVisibleToMyTeam(RVB_Entity* someEntity);	// pass in an entity pointer it lets you know if that entity is visible to your team
 	bool isThisSpotVisibleToMyTeam(double checkX, double checkY);	// pass in an x/y coord to see if that spot is visible to your team
