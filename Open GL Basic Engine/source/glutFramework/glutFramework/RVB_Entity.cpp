@@ -408,6 +408,9 @@ void RVB_Entity::performBrainFunction()
 		cout << "In attack optimal state" << endl;
 		break;
 
+	case EXPLORE:
+		break;
+
 	default:
 		// you just lost the game
 		break;

@@ -29,6 +29,8 @@ public: // Boilerplate Class Stuff
 
 private: // Private Data Members
 	vector<vector<RVB_MapTile*>> mBoard;	// the vector of tiles that comprise the board
+	vector<vector<RVB_MapTile*>> redKnowledgeMap;	// red's knowledge of the board
+	vector<vector<RVB_MapTile*>> blueKnowledgeMap;	// blue's knowledge of the board
 	
 	double scaleFactor;						// the scale you are viewing the map at
 	int	panRate;							// the rate at which you can scroll across the map
@@ -81,6 +83,7 @@ public: // Public Interface
 	void Update();
 	void Draw();
 	void drawText();
+	void drawBullets();
 
 	void addEntity(entityType newType, int xPos, int yPos, entityDirection newDirection);
 	void toggleObstacle(int xPos, int yPos);
@@ -93,6 +96,8 @@ public: // Public Interface
 	bool isThereAnObstacleAt(double x, double y);
 	void didBulletHitSomething();
 	void setToAttackOptimal(RVB_Entity* setThisOne);
+	void drawKnowledgeMap(int tileWidth, double scaleFactor, double mapOffsetX, double mapOffsetY);
+	void isThereAnEnemyUnitAt(double someX, double someY);
 };
 
 

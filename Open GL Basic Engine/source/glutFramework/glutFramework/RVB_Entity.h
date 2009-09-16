@@ -12,7 +12,7 @@ using namespace std; // syphilis
 enum entityDirection{ NORTH, NORTHEAST, EAST, SOUTHEAST, SOUTH, SOUTHWEST, WEST, NORTHWEST };
 
 enum entityState { ATTACKING, TAKING_COVER, MOVING, IDLE, SCANNING };
-enum higherState { CHASING, EVADING, ATTACKOPTIMAL, ATTACKMOVE, HIGHERMOVING, HIGHERATTACKING, HIGHERIDLE, DEAD };
+enum higherState { CHASING, EVADING, ATTACKOPTIMAL, ATTACKMOVE, HIGHERMOVING, HIGHERATTACKING, HIGHERIDLE, DEAD, EXPLORE };
 
 // circular dependancies require circular referencing and circular declarations
 class RVB_Map;
