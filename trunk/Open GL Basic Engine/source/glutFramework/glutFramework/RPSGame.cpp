@@ -96,6 +96,17 @@ bool RPSGame::Draw()
 	// draw scores
 	//cout << "Player Score == " << playerScore << endl;
 	//cout << "Computer Score == " << cpuScore << endl;
+	stringstream pScore;
+	stringstream cScore;
+	pScore << "Player: " << playerScore;
+	cScore << "CPU: " << cpuScore;
+
+	string pScoreS = pScore.str();
+	string cScoreS = cScore.str();
+
+	GameVars->fontArial24.drawText(700, 200, pScoreS);
+	GameVars->fontArial24.drawText(700, 250, cScoreS);
+
 	
 	return true;
 }
@@ -180,8 +191,8 @@ void RPSGame::processMouseClick(int button, int state, int x, int y)
 					cout << "RPSGame: we somehow have a non winner wtf?" << endl;
 				}
 			}
-			cout << "Player Score = " << playerScore << endl;
-			cout << "CPU Score = " << cpuScore << endl;
+			//cout << "Player Score = " << playerScore << endl;
+			//cout << "CPU Score = " << cpuScore << endl;
 		}
 	}
 }

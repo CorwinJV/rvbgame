@@ -17,9 +17,9 @@ projekt1App::projekt1App(std::string title, int sizeX, int sizeY, int argc, char
 
 	//Load our starting state into the GameStateManager
 	GameVars->Instance();
-	myStateManager.addGameState<RVB_MainState>();
-	//myStateManager.addGameState<bioWrapper>();			// ours now whores!
-	//myStateManager.addGameState<RPSGame>();
+	myStateManager.addGameState<RVB_MainState>();		// red vs blue game
+	//myStateManager.addGameState<bioWrapper>();		// triangle game
+	//myStateManager.addGameState<RPSGame>();			// rock paper scissors
 
 	
 }

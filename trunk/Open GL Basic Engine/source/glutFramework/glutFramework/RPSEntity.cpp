@@ -46,8 +46,8 @@ void RPSEntity::opponentPlayedHand(RPSHand newHand)
 	if(newHand == shortTermMemory.predictedHand)
 	{
 		handsCorrect++;
-		cout << "Woo! I predicted it right! That's " << handsCorrect << " out of " << handsPlayed << " correct!" << endl;
-		cout << "Total Percent Correct = " << (double)((double)handsCorrect/(double)handsPlayed) << endl;
+		//cout << "Woo! I predicted it right! That's " << handsCorrect << " out of " << handsPlayed << " correct!" << endl;
+		//cout << "Total Percent Correct = " << (double)((double)handsCorrect/(double)handsPlayed) << endl;
 	}
 	for(;iHistory < myHandKnowledge.end(); iHistory++)
 	{
