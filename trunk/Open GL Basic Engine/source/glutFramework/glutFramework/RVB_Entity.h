@@ -122,6 +122,7 @@ private:
 	bool scanned;		// internal shit for scanning
 	int scanDelay;		// delay for scanning
 	bool canStillSeeEnemy();
+	void findExplorationTarget();
 };
 
 

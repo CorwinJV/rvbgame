@@ -98,6 +98,7 @@ public: // Public Interface
 	void setToAttackOptimal(RVB_Entity* setThisOne);
 	void drawKnowledgeMap(int tileWidth, double scaleFactor, double mapOffsetX, double mapOffsetY);
 	void isThereAnEnemyUnitAt(double someX, double someY);
+	vector<vector<RVB_MapTile*>> *getKnowledgeMap(entityType someType);
 };
 
 
