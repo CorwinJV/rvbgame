@@ -814,3 +814,21 @@ void RVB_Map::drawKnowledgeMap(int tileWidth, double scaleFactor, double mapOffs
 		}
 	}	
 }
+
+vector<vector<RVB_MapTile*>>* RVB_Map::getKnowledgeMap(entityType someType)
+{
+	switch(someType)
+	{
+	case RED:
+		return &redKnowledgeMap;
+		break;
+
+	case BLUE:
+		return &blueKnowledgeMap;
+		break;
+
+	default:
+		break;
+	}
+	return NULL;
+}

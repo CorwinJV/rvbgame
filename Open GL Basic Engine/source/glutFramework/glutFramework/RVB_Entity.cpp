@@ -474,6 +474,13 @@ void RVB_Entity::performBrainFunction()
 		break;
 
 	case HIGHERIDLE:
+		findExplorationTarget();
+		if(targetX != -1)
+		{
+			//myHigherState = HIGHERMOVING;
+			myHigherState = ATTACKMOVE;
+			myLowerState = MOVING;
+		}
 		break;
 
 	case ATTACKOPTIMAL:
@@ -1360,5 +1367,105 @@ void RVB_Entity::setMoveTargetToVisibleHidingSpotFrom(RVB_Entity* someEntity)
 				}
 			}
 		}
+	}
+}
+
+// find exploration target
+void RVB_Entity::findExplorationTarget()
+{
+	vector<vector<RVB_MapTile*>> *myKnowledgeMap = NULL;
+
+	vector<int> viableX;
+	vector<int> viableY;
+	// first build a list of tile's that border unexplored tiles
+	switch(type)
+	{
+	case RED:
+		myKnowledgeMap = board->getKnowledgeMap(RED);
+		break;
+	case BLUE:
+		myKnowledgeMap = board->getKnowledgeMap(BLUE);
+		break;
+	default:
+		break;
+	}
+
+	int boardWidth = board->getBoardWidth();
+	int boardHeight = board->getBoardHeight();
+	int xToCheck = 0;
+	int yToCheck = 0;
+	bool viableSpot = false;
+
+	for(int x = 0; x < boardWidth; x++)
+	{
+		for(int y = 0; y < boardHeight; y++)
+		{
+			viableSpot = false;
+			if( (*myKnowledgeMap)[x][y]->getTileType() != TT_NULL)
+			{
+				// filthy dirty code duplication begins...
+
+				// up
+				xToCheck = 0;	yToCheck = -1;
+				if( (((x + xToCheck) >= 0) && ((x + xToCheck < boardWidth)) && 	 ((y + yToCheck) >= 0) && ((y + yToCheck < boardHeight))))	{
+					if((*myKnowledgeMap)[x + xToCheck][y + yToCheck]->getTileType() == TT_NULL)		{
+						viableSpot = true;	}	}
+
+				// down
+				xToCheck = 0;	yToCheck = 1;
+				if( (((x + xToCheck) >= 0) && ((x + xToCheck < boardWidth)) && 	 ((y + yToCheck) >= 0) && ((y + yToCheck < boardHeight))))	{
+					if((*myKnowledgeMap)[x + xToCheck][y + yToCheck]->getTileType() == TT_NULL)		{
+						viableSpot = true;	}	}
+
+				// left
+				xToCheck = -1;	yToCheck = 0;
+				if( (((x + xToCheck) >= 0) && ((x + xToCheck < boardWidth)) && 	 ((y + yToCheck) >= 0) && ((y + yToCheck < boardHeight))))	{
+					if((*myKnowledgeMap)[x + xToCheck][y + yToCheck]->getTileType() == TT_NULL)		{
+						viableSpot = true;	}	}
+
+				// right
+				xToCheck = 1;	yToCheck = 0;
+				if( (((x + xToCheck) >= 0) && ((x + xToCheck < boardWidth)) && 	 ((y + yToCheck) >= 0) && ((y + yToCheck < boardHeight))))	{
+					if((*myKnowledgeMap)[x + xToCheck][y + yToCheck]->getTileType() == TT_NULL)		{
+						viableSpot = true;	}	}
+
+				// upleft
+				xToCheck = -1;	yToCheck = -1;
+				if( (((x + xToCheck) >= 0) && ((x + xToCheck < boardWidth)) && 	 ((y + yToCheck) >= 0) && ((y + yToCheck < boardHeight))))	{
+					if((*myKnowledgeMap)[x + xToCheck][y + yToCheck]->getTileType() == TT_NULL)		{
+						viableSpot = true;	}	}
+
+				// upright
+				xToCheck = 1;	yToCheck = -1;
+				if( (((x + xToCheck) >= 0) && ((x + xToCheck < boardWidth)) && 	 ((y + yToCheck) >= 0) && ((y + yToCheck < boardHeight))))	{
+					if((*myKnowledgeMap)[x + xToCheck][y + yToCheck]->getTileType() == TT_NULL)		{
+						viableSpot = true;	}	}
+				
+				// downleft
+				xToCheck = -1;	yToCheck = 1;
+				if( (((x + xToCheck) >= 0) && ((x + xToCheck < boardWidth)) && 	 ((y + yToCheck) >= 0) && ((y + yToCheck < boardHeight))))	{
+					if((*myKnowledgeMap)[x + xToCheck][y + yToCheck]->getTileType() == TT_NULL)		{
+						viableSpot = true;	}	}
+
+				// downright
+				xToCheck = 1;	yToCheck = 1;
+				if( (((x + xToCheck) >= 0) && ((x + xToCheck < boardWidth)) && 	 ((y + yToCheck) >= 0) && ((y + yToCheck < boardHeight))))	{
+					if((*myKnowledgeMap)[x + xToCheck][y + yToCheck]->getTileType() == TT_NULL)		{
+						viableSpot = true;	}	}
+			}
+			if(viableSpot)
+			{
+				viableX.push_back(x);
+				viableY.push_back(y);
+			}
+		}
+	}
+	// at this point we have our list of viables... lets pick a random one and GTFO
+	if(viableX.size() > 0)
+	{
+		int randMax = viableX.size();
+		int randNum = rand() % randMax;
+		
+		setTarget(viableX[randNum], viableY[randNum]);
 	}
 }
