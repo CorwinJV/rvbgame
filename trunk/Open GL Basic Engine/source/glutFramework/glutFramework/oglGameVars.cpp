@@ -4,6 +4,7 @@
 #include <string>
 #include <sstream>
 #include <cmath>
+#include <ctime>
 using namespace std;
 
 oglGameVars* oglGameVars::pinstance = 0;// initialize pointer
@@ -27,6 +28,8 @@ oglGameVars::oglGameVars()
 
 void oglGameVars::init()
 {
+	 srand ( time(NULL) );
+
 	// always had it, always will
 	bacardi = new oglTexture2D();
 	bacardi->loadImage("buttons/bacardi.png", imageSize, imageSize);

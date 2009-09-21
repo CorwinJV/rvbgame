@@ -1,7 +1,9 @@
 #include "RVB_Bullet.h"
 
 //	contructors and destructor
-RVB_Bullet::RVB_Bullet(double xPos, double yPos, double damage_n, double xSpeed_n, double ySpeed_n, double speed_n, double range_n, RVB_BulletType type_n)
+RVB_Bullet::RVB_Bullet(double xPos, double yPos, double damage_n, double xSpeed_n, double ySpeed_n, 
+					   double speed_n, double range_n, RVB_BulletType type_n, RVB_Entity* whoShot, 
+					   RVB_Entity* target, double distanceFromTarget)
 {
 	// inherit the values passed in
 	bulletXPos = xPos;
@@ -14,6 +16,9 @@ RVB_Bullet::RVB_Bullet(double xPos, double yPos, double damage_n, double xSpeed_
 	type = type_n;
 	sourceX = bulletXPos;
 	sourceY = bulletYPos;
+	whoFiredMe = whoShot;
+	whoAmIBeingShotAt = target;
+	rangeWhenFired = distanceFromTarget;
 
 	// set the bullet to active and its distance traveled to 0
 	active = true;
@@ -77,6 +82,8 @@ bool	RVB_Bullet::update()
 	{
 		// if so deactive it
 		active = false;
+		// and we're out of range without hitting anything, so the shot wasn't a success
+		success = false;
 	}
 
 	return true;
@@ -141,13 +148,18 @@ void	RVB_Bullet::setActive(bool active_n)
 	active = active_n;
 }
 
+void	RVB_Bullet::setSuccess(bool hitTarget)
+{
+	success = hitTarget;
+}
+
 //	 getters
 double	RVB_Bullet::getDistanceTraveled()
 {
 	return distanceTraveled;
 }
 
-double		RVB_Bullet::getDamage()
+double	RVB_Bullet::getDamage()
 {
 	return damage;
 }
@@ -167,17 +179,27 @@ bool	RVB_Bullet::getActive()
 	return active;
 }
 
-RVB_BulletType	RVB_Bullet::getBulletType()
-{
-	return type;
-}
-
-double RVB_Bullet::getBulletXPos()
+double	RVB_Bullet::getBulletXPos()
 {
 	return bulletXPos;
 }
 
-double RVB_Bullet::getBulletYPos()
+double	RVB_Bullet::getBulletYPos()
 {
 	return bulletYPos;
+}
+
+bool	RVB_Bullet::getSuccess()
+{
+	return success;
+}
+
+double	RVB_Bullet::getRangeWhenFired()
+{
+	return rangeWhenFired;
+}
+
+RVB_BulletType	RVB_Bullet::getBulletType()
+{
+	return type;
 }

@@ -25,12 +25,16 @@ public: // Boilerplate Class Stuff
 	RVB_Entity* cycleEntityUp(RVB_Entity* selectedEntity);
 	void drawFog(int tileWidth, double scaleFactor, double mapOffsetX, double mapOffsetY);
 	void drawEntities(int tileWidth, double scaleFactor, int mapOffsetX, int mapOffsetY);
+	void helpRequested(RVB_Entity* entityChasing, entityType team);
 	
 
 private: // Private Data Members
 	vector<vector<RVB_MapTile*>> mBoard;	// the vector of tiles that comprise the board
 	vector<vector<RVB_MapTile*>> redKnowledgeMap;	// red's knowledge of the board
 	vector<vector<RVB_MapTile*>> blueKnowledgeMap;	// blue's knowledge of the board
+	vector<vector<double>> redFog;
+	vector<vector<double>> blueFog;
+	int uberFactor;
 	
 	double scaleFactor;						// the scale you are viewing the map at
 	int	panRate;							// the rate at which you can scroll across the map
@@ -97,8 +101,9 @@ public: // Public Interface
 	void didBulletHitSomething();
 	void setToAttackOptimal(RVB_Entity* setThisOne);
 	void drawKnowledgeMap(int tileWidth, double scaleFactor, double mapOffsetX, double mapOffsetY);
-	void isThereAnEnemyUnitAt(double someX, double someY);
+	//void isThereAnEnemyUnitAt(double someX, double someY);
 	vector<vector<RVB_MapTile*>> *getKnowledgeMap(entityType someType);
+	void updateFog(entityType newType);
 };
 
 

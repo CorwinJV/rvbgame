@@ -37,6 +37,8 @@ private:
 	//RVB_Entity* selectedEntity;
 	vector<RVB_Entity*>* selectedEntityList;
 
+	void loadObstacles();
+
 public:
 	bool Update();
 	bool Draw();
@@ -57,6 +59,7 @@ public:
 
 	void hurtSelectedEntities();
 	void healSelectedEntities();
+
 	
 };
 

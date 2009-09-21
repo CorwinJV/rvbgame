@@ -6,6 +6,7 @@
 #include <ctime>
 #include "RVB_weapon.h"
 #include "ammoPack.h"
+#include "RVB_Bullet.h"
 
 using namespace std; // syphilis
 
@@ -49,8 +50,11 @@ public:
 	void drawEntityTarget(int tileWidth, double scaleFactor, double mapOffsetX, double mapOffsetY);
 	void reload(int bullets);
 	bool entityCanSeeTargetAt(double targetXn, double targetYn);
+	bool areThereAnyEntitiesInTheWay(double targetX_n, double targetY_n);
+	bool isThereAFriendlyEntityInTheWay(double targetX_n, double targetY_n);
 	higherState getHigherState();
 	entityState	getLowerState();
+	void receivedRequestForHelp(RVB_Entity* entityChasing);
 
 	void setMoveTargetToHidingSpotFrom(RVB_Entity* someEntity);				// sets move target to a hiding spot, otherwise sets move target to -1 if no hiding spot found
 	void setMoveTargetToVisibleHidingSpotFrom(RVB_Entity* sometEntity);		// sets move target to a hiding spot, otherwise sets move target to -1 if no hiding spot found
@@ -76,9 +80,11 @@ private:
 	entityType type;					// which side (red or blue) is the entity on
 	RVB_Map* board;
 	vector<RVB_Entity*>* objectList;
+	vector<RVB_Bullet*>  shotsFired;	// a vector that keeps track of success rate of shots fired
 
-	//=================
+	// =================
 	// Smooth Movement
+	bool doneMoving;
 	int movementSourceNodeX;
 	int movementSourceNodeY;
 	double completionPercentage;
@@ -121,8 +127,9 @@ private:
 
 	bool scanned;		// internal shit for scanning
 	int scanDelay;		// delay for scanning
-	bool canStillSeeEnemy();
-	void findExplorationTarget();
+	bool canStillSeeEnemy();				// finds out if you can still see your enemy
+	void findExplorationTarget();			// finds a valid exploration target
+	void runToNearestFriendlyUnit();		// sets movement target to the nearest friendly unit
 };
 
 

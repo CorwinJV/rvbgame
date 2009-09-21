@@ -1,15 +1,19 @@
 #include "RVB_entity.h" 
 #include "RVB_Map.h"
 #include "math.h"
+//#define innovation true
 
-//		FUN NAME  rvbWeapon(dmg, range, clip, ammo,       type,		firing rate, reload time)
-#define RVBPISTOL rvbWeapon(10,      6,   10,   10, WEAPON_PISTOL,	1000,		 1000);
-#define RVBSHOTTY rvbWeapon( 3,      3,    4,    4, WEAPON_SHOTTY,	3000,		 3000);
-#define RVBRIFFLE rvbWeapon(20,     12,    1,    1, WEAPON_RIFFLE,	5000,		 2000);
+//		FUN NAME  rvbWeapon(dmg, range, clip, ammo,       type,		firing rate, reload time, who fired the shot)
+#define RVBPISTOL rvbWeapon(10,      6,   10,   10, WEAPON_PISTOL,	1000,		 1000,        this);
+#define RVBSHOTTY rvbWeapon( 3,      3,    4,    4, WEAPON_SHOTTY,	3000,		 3000,        this);
+#define RVBRIFFLE rvbWeapon(20,     12,    1,    1, WEAPON_RIFFLE,	5000,		 2000,        this);
 
 
 void RVB_Entity::Update()
 {
+	double distanceToTarget = 0;
+	RVB_Bullet* tempBullet;
+
 	if(health <= 0)
 	{
 		return;
@@ -30,6 +34,7 @@ void RVB_Entity::Update()
 		switch(myLowerState)
 		{
 		case ATTACKING:
+			
 			//cout << "bang, bang, BAAAAAAAANG, you dead?" << endl;
 			
 			// if we're trying to fire at something that isn't an entity
@@ -80,32 +85,57 @@ void RVB_Entity::Update()
 						fireFromY -= 0.5;
 					}
 
-					// if we're not shooting the shotgun
-					if(!(currentWeapon->getType() == WEAPON_SHOTTY))
+					// make sure someone from our team, or an obstacle isnt between us and the target
+					if(!isThereAFriendlyEntityInTheWay(fireAtX, fireAtY) && entityCanSeeTargetAt(fireAtX, fireAtY))
 					{
-						// SHOOT!
-						board->makeBullet(currentWeapon->shotFired(fireFromX , fireFromY , fireAtX, fireAtY));
-						// set the gun to unable to shoot
-						canIShoot = false;
-						// log the time of last shot taken
-						timeOfLastFire = clock();
-					}
-					else	//otherwise we are shooting the shotgun and have to make multiple shots
-					{
-						for(int x = 0; x < shotgunBullets; x++)
-						{
-							board->makeBullet(currentWeapon->shotFired(fireFromX , fireFromY , 
-																	(rand() / 32768.0) - 0.5 + fireAtX, 
-																	(rand() / 32768.0) - 0.5 + fireAtY) );
+						// if we're not shooting the shotgun
+						if(!(currentWeapon->getType() == WEAPON_SHOTTY))
+						{			
+							// calculate how far we are from our target
+							distanceToTarget = GameVars->getDistanceToTarget(fireFromX, fireFromY, fireAtX, fireAtY);
+							// SHOOT!
+							tempBullet = currentWeapon->shotFired(fireFromX , fireFromY , fireAtX, fireAtY, distanceToTarget, myEntityTarget);
+							board->makeBullet(tempBullet);
+							// set the gun to unable to shoot
+							canIShoot = false;
+							// add the bullet to the gun owners vector
+							shotsFired.push_back(tempBullet);
+							// log the time of last shot taken
+							timeOfLastFire = clock();
+							// take away a bullet
+							bulletsLeft -= 1;
 						}
-						// set the gun to unable to shoot
-						canIShoot = false;
-						// log the time of last shot taken
-						timeOfLastFire = clock();
-					}
+						else	//otherwise we are shooting the shotgun and have to make multiple shots
+						{
+							// calculate how far we are from our target
+							distanceToTarget = GameVars->getDistanceToTarget(fireFromX, fireFromY, fireAtX, fireAtY);
+							for(int x = 0; x < shotgunBullets; x++)
+							{
+								// create the bullet and fire it
+								tempBullet = currentWeapon->shotFired(fireFromX , fireFromY , 
+																		(rand() / 32768.0) - 0.5 + fireAtX, 
+																		(rand() / 32768.0) - 0.5 + fireAtY, 
+																		 distanceToTarget, myEntityTarget);
+								board->makeBullet(tempBullet);
+								// push the bullet onto the entity's shot fired vector
+								shotsFired.push_back(tempBullet);
+							}
+							// take away a bullet
+							bulletsLeft -= 1;
+							// set the gun to unable to shoot
+							canIShoot = false;
+							// log the time of last shot taken
+							timeOfLastFire = clock();
+						}
 
-					bulletsLeft -= 1;
-					currentWeapon->setAmmoLeftInClip(bulletsLeft);
+						// after the shot(s) have been fired, set how much ammo we have left
+						currentWeapon->setAmmoLeftInClip(bulletsLeft);
+					}
+					else	// there is a friendly entity, or obstacle in the way, so we need to move
+					{
+						cout << "Someone is in the way" << endl;
+						// call function to create a new path here
+					}
 				}
 				//otherwise try to reload
 				else
@@ -165,7 +195,8 @@ void RVB_Entity::Update()
 			break;
 
 		case MOVING:
-			doMove();
+			doneMoving = false;
+			//doMove();
 			break;
 
 		case IDLE:
@@ -180,6 +211,23 @@ void RVB_Entity::Update()
 		}
 
 	}
+
+	if(!doneMoving)
+	{
+		doMove();
+	}
+	else
+	{
+		if(completionPercentage < 1.0)
+		{
+			completionPercentage += defaultMovementIncr;
+		}
+		if(completionPercentage > 1.0)
+		{
+			completionPercentage = 1.0;
+		}
+	}
+
 	//////////////////////////////
 	// Log our update
 	timeOfLastUpdate = clock();
@@ -217,9 +265,6 @@ void RVB_Entity::doEnemyScan()
 							{
 								//cout << "found an enemy that's close and visible" << endl;
 								// ok now we have the closest enemy so far and its within a friendly entity's vision radius
-								// *********************************************
-								// RIGHT HERE IS WHERE LINE OF SIGHT GOES, FOR NOW WE IGNORE IT
-								// *********************************************
 								if(entityCanSeeTargetAt(enemyX, enemyY))
 								{
 									myEntityTarget = board->getSelectableEntityAtGridCoord(enemyX, enemyY);
@@ -252,11 +297,8 @@ bool RVB_Entity::canStillSeeEnemy()
 			   (entityCanSeeTargetAt(enemyX, enemyY)) &&
 			   (myEntityTarget->getHealth() > 0))
 			{
-			//	cout << "found an enemy that's close and visible" << endl;
+				//	cout << "found an enemy that's close and visible" << endl;
 				// ok now we have the closest enemy so far and its within a friendly entity's vision radius
-				// *********************************************
-				// RIGHT HERE IS WHERE LINE OF SIGHT GOES, FOR NOW WE IGNORE IT
-				// *********************************************
 			
 				return true;
 			}
@@ -275,12 +317,15 @@ void RVB_Entity::performBrainFunction()
 	RVB_Entity* tempEntity = NULL;
 	bool imBeingWatched = false;
 	bool imBeingChased  = false;
+	int boardWidth = board->getBoardWidth();
+	int boardHeight = board->getBoardHeight();
 
 	// if my health is lower than 50
 	if(health < 50)
 	{
 		// and there is someone coming at me
-		if(isAnyoneChasingMeThatICanSee())
+		//if(isAnyoneChasingMeThatICanSee())
+		if(isAnyoneChasingMe())
 		{
 			// run like hell!
 			imBeingChased = true;
@@ -292,7 +337,8 @@ void RVB_Entity::performBrainFunction()
 	if(health < 30)
 	{
 		// and someone is even looking at me
-		if(isAnyoneLookingAtMeThatICanSee())
+		//if(isAnyoneLookingAtMeThatICanSee())
+		if(isAnyoneLookingAtMe())
 		{
 			// run like hell!
 			imBeingWatched = true;
@@ -363,27 +409,137 @@ void RVB_Entity::performBrainFunction()
 			// find out who it is
 			tempEntity = whoIsChasingMe();
 
-			// make sure that someone is chasing us
-			if(tempEntity != NULL)
-			{
-				// move away from them
-
-			}
+			// if someone is watching me
 		}
-
-		// if someone is watching me
-		if(imBeingWatched)
+		else if(imBeingWatched)
 		{
 			// find out who it is
-			tempEntity = whoIsLookingAtMe();
+			tempEntity = whoIsLookingAtMe();			
+		}
+		
 
-			// make sure that someone is watching us
-			if(tempEntity != NULL)
+		if(tempEntity != NULL)
+		{
+			//=-=-=-==-=-=-=-=
+			// Call for help
+			// Tell everyone else that someone is chasing me
+			board->helpRequested(tempEntity, type);
+
+			// move away from them
+			// see if we can find a spot out of line of sight of them...
+			//setMoveTargetToVisibleHidingSpotFrom(tempEntity);
+			setMoveTargetToHidingSpotFrom(tempEntity);
+			if(targetX != -1)
 			{
-				// move away from them
+				myHigherState = HIGHERMOVING;
+				myLowerState = MOVING;
+				break;
+			}
 
+			// if we cant, lets just run away from them...
+			if((targetX = -1))
+			{
+				//////////////////////////////////////////////////////////////////
+				/////////////////////////////////////////////////////////////////
+				////////////////////////////////////////////////////////////////
+				////                                                       ////
+				////    to see what direction they are from us.....       ////
+				////    target x - my x = which direction they are       ////
+				////                                                    ////
+				///////////////////////////////////////////////////////////
+				//////////////////////////////////////////////////////////
+				
+
+				///////////////////////////////////////////////////////
+				//////////////////////////////////////////////////////
+				/////////////////////////////////////////////////////
+				////////////////////////////////////////////////////
+				///////////////////////////////////////////////////
+				///////////
+				//////////
+				/////////
+				////////
+				///////
+				//////
+				/////
+				////
+				///
+				//
+				
+				double directionX = xPos - tempEntity->getXPos();
+				double directionY = yPos - tempEntity->getYPos();
+
+				// now what we want to do is go exactly the other direction from this insidious bastard
+
+				double magicNumber = max(GameVars->dAbs(directionX), GameVars->dAbs(directionY));
+
+				if(magicNumber != 0) {	magicNumber = 1/magicNumber;	}
+
+				// now we need to find as far as we can go on the map that's a viable movement square
+				bool done = false;
+				double destXt = yPos;
+				double destYt = xPos;
+		
+				destXt += directionX;
+				destYt += directionY;
+
+				while(!done)
+				{
+					// don't let us move off the map, if we're at the edge of the map, set to done
+					if( (destXt >= 0) && (destXt < boardWidth) &&
+						(destYt >= 0) && (destYt < boardHeight) )
+					{
+						// if we're not off the board yet, lets kick this shit up...
+						destXt += directionX;
+						destYt += directionY;
+					}
+					else
+					{
+						// shit we went to far, lets back that bitch up
+						destXt -= directionX;
+						destYt -= directionY;
+
+						if( (destXt == xPos) && (destYt == yPos) )
+						{
+							// shit we're at our own position, lets just go another way
+							if(directionX > directionY)
+							{
+								// in this case they're more x than y, so lets go y
+								// are we more toward the bottom than the top?
+								if(yPos > (boardHeight/2) )
+								{
+									// oh we are
+									destYt = 0;
+								}
+								else
+								{
+									destYt = boardHeight - 1;
+								}
+							}
+							else
+							{
+								// are we more to the left or the right?
+								if(xPos > (boardWidth /2))
+								{
+									destXt = 0;
+								}
+								else
+								{
+									destXt = boardWidth - 1;
+								}
+							}
+						}
+
+						// now lets set our movement to this location
+						setTarget(floor(destXt), floor(destYt));
+						done = true;
+						myHigherState = HIGHERMOVING;
+						myLowerState = MOVING;
+					}
+				}				
 			}
 		}
+
 		
 		break;
 
@@ -403,6 +559,7 @@ void RVB_Entity::performBrainFunction()
 			if(GameVars->getDistanceToTarget(xPos, yPos, myEntityTarget->getXPos(), myEntityTarget->getYPos()) <= currentWeapon->getRange())
 			{
 				myLowerState = ATTACKING;
+				doneMoving = true;
 			}
 			else
 			{
@@ -474,13 +631,8 @@ void RVB_Entity::performBrainFunction()
 		break;
 
 	case HIGHERIDLE:
-		findExplorationTarget();
-		if(targetX != -1)
-		{
-			//myHigherState = HIGHERMOVING;
-			myHigherState = ATTACKMOVE;
-			myLowerState = MOVING;
-		}
+		myLowerState = IDLE;
+
 		break;
 
 	case ATTACKOPTIMAL:
@@ -545,8 +697,20 @@ void RVB_Entity::performBrainFunction()
 		}
 		break;
 	case EXPLORE:
+		findExplorationTarget();
+		if(targetX != -1)
+		{
+			myHigherState = HIGHERMOVING;
+			myLowerState = MOVING;
+		}
 		break;
 	case SEEKANDDESTROY:
+		findExplorationTarget();
+		if(targetX != -1)
+		{
+			myHigherState = ATTACKMOVE;
+			myLowerState = MOVING;
+		}
 		break;
 
 	default:
@@ -607,6 +771,7 @@ void RVB_Entity::doMove()
 				targetY = -1;
 				movementSourceNodeX = -1;
 				movementSourceNodeY = -1;
+				doneMoving = true;
 			}
 		}
 	}
@@ -682,23 +847,31 @@ void RVB_Entity::Draw(int tileWidth, double scaleFactor, int mapOffsetX, int map
 
 	int drawXPos = ((xPos*tileWidth)*scaleFactor)+mapOffsetX;
 	int drawYPos = ((yPos*tileWidth)*scaleFactor)+mapOffsetY;
-	if(myLowerState == MOVING && (movementSourceNodeX != -1 && movementSourceNodeY != -1) && myPath->getCurrentPathNode() != NULL)
+	//(doneMoving == false) &&
+
+	if( (movementSourceNodeX != -1 && movementSourceNodeY != -1) )
 	{
-		double xDiff = movementSourceNodeX - myPath->getCurrentPathNode()->getX();
-		double yDiff = movementSourceNodeY - myPath->getCurrentPathNode()->getY();
+		if(myPath != NULL)
+		{
+			if(myPath->getCurrentPathNode() != NULL)
+			{
+				double xDiff = movementSourceNodeX - myPath->getCurrentPathNode()->getX();
+				double yDiff = movementSourceNodeY - myPath->getCurrentPathNode()->getY();
 
-		//cout << "movementSourceNodeX: " << movementSourceNodeX << endl;
-		//cout << "movementSourceNodeY: " << movementSourceNodeY << endl;
+				//cout << "movementSourceNodeX: " << movementSourceNodeX << endl;
+				//cout << "movementSourceNodeY: " << movementSourceNodeY << endl;
 
-		//cout << "currentPathNodeX: " << myPath->getCurrentPathNode()->getX() << endl;
-		//cout << "currentPathNodeY: " << myPath->getCurrentPathNode()->getY() << endl;
+				//cout << "currentPathNodeX: " << myPath->getCurrentPathNode()->getX() << endl;
+				//cout << "currentPathNodeY: " << myPath->getCurrentPathNode()->getY() << endl;
 
-		//cout << "xDiff: " << xDiff << endl;
-		//cout << "yDiff: " << yDiff << endl;
-		tempImage->drawImage((int)(tileWidth*scaleFactor),			 // Width
-									(int)(tileWidth*scaleFactor),			 // Height
-									(double)drawXPos + (xDiff * ((128.0 * (1.0 - completionPercentage))*scaleFactor)),  // X
-									(double)drawYPos + (yDiff * ((128.0 * (1.0 - completionPercentage))*scaleFactor))); // Y
+				//cout << "xDiff: " << xDiff << endl;
+				//cout << "yDiff: " << yDiff << endl;
+				tempImage->drawImage((int)(tileWidth*scaleFactor),			 // Width
+											(int)(tileWidth*scaleFactor),			 // Height
+											(double)drawXPos + (xDiff * ((128.0 * (1.0 - completionPercentage))*scaleFactor)),  // X
+											(double)drawYPos + (yDiff * ((128.0 * (1.0 - completionPercentage))*scaleFactor))); // Y
+			}
+		}
 	}
 	else
 	{
@@ -881,7 +1054,7 @@ void RVB_Entity::setPosition(int newX, int newY)
 RVB_Entity::RVB_Entity(entityType newType, int newX, int newY, entityDirection newDirection, RVB_Map* parentBoard, vector<RVB_Entity*>* boardObjectList)
 	:timeOfLastUpdate(0), timeSinceLastUpdate(0), timeStep(0.5),
 	movementSourceNodeX(-1), movementSourceNodeY(-1), completionPercentage(0.0),
-	defaultMovementIncr(.1)
+	defaultMovementIncr(.1), doneMoving(true)
 {
 	xPos = newX;
 	yPos = newY;
@@ -989,7 +1162,6 @@ bool RVB_Entity::entityCanSeeTargetAt(double targetXn, double targetYn)
 	// that our xpos is based on our top left
 	// that their target is based off of it's top left
 	
-
 	double storedTargetX = targetXn;// + 0.5;
 	double storedTargetY = targetYn;// + 0.5;
 
@@ -999,35 +1171,17 @@ bool RVB_Entity::entityCanSeeTargetAt(double targetXn, double targetYn)
 	double incrementX = targetXn - xPos;
 	double incrementY = targetYn - yPos;
 
-
 	double magicNumber = max(GameVars->dAbs(incrementX), GameVars->dAbs(incrementY));
 
 	if(magicNumber != 0)	// damned black holes
 	{
+		// so now we have in an increment of 1 for our larger number and some percentage of this for the other number
 		magicNumber = 1/magicNumber;
 	}
 
 	incrementX *= magicNumber;
 	incrementY *= magicNumber;
 
-	/*if(incrementX > 0)
-	{
-		movingCheckerX += 0.5;
-	}
-	if(incrementX < 0)
-	{
-		movingCheckerX -= 0.5;
-	}
-	if(incrementY > 0)
-	{
-		movingCheckerY += 0.5;
-	}
-	if(incrementY <0)
-	{
-		movingCheckerY -= 0.5;
-	}*/
-
-	// so now we have in an increment of 1 for our larger number and some percentage of this for the other number
 	bool done = false;
 
 	//cout << "Source = " << xPos << ", " << yPos << " and target = " << targetXn << ", " << targetYn << endl;
@@ -1038,12 +1192,15 @@ bool RVB_Entity::entityCanSeeTargetAt(double targetXn, double targetYn)
 		if( (movingCheckerX >= 0) && (floor(movingCheckerX) < board->getBoardWidth()) &&
 			(movingCheckerY >= 0) && (floor(movingCheckerY) < board->getBoardHeight()) )
 		{
+			// is there an obstacle in the way
 			if(board->isThereAnObstacleAt(movingCheckerX, movingCheckerY))
 			{
+				// yes there was, so we can't see the target
 				return false;
 			}
 		}
 
+		// make sure we're still on the baord, and not at the target yet
 		if( ((movingCheckerX > storedTargetX - incrementX) && (movingCheckerX > xPos)) ||
 			((movingCheckerX < storedTargetX - incrementX) && (movingCheckerX < xPos)) ||
 			((movingCheckerY > storedTargetY - incrementY) && (movingCheckerY > yPos)) ||
@@ -1051,6 +1208,7 @@ bool RVB_Entity::entityCanSeeTargetAt(double targetXn, double targetYn)
 			((movingCheckerX == storedTargetX - incrementX) && (movingCheckerY == storedTargetY - incrementY))
 			)
 		{
+			// when we're beyond the board, or have arrived at the target square
 			done = true;
 		}
 		//cout << "MovingCheckerX/y " << movingCheckerX << ", " << movingCheckerY << endl;
@@ -1059,11 +1217,159 @@ bool RVB_Entity::entityCanSeeTargetAt(double targetXn, double targetYn)
 		//cout << "MovingCheckerX/y " << movingCheckerX << ", " << movingCheckerY << endl;
 		//cout << "----------------------------------------------------------------------" << endl;
 	}
+	// we made it out with no obstructions, we can see it
 	return true;
 }
 
+bool RVB_Entity::isThereAFriendlyEntityInTheWay(double targetX_n, double targetY_n)
+{
+	// if they ask if you can see yourself, just say yeah we can
+	if((targetX_n == xPos) && (targetY_n == yPos))
+	{
+		return true;
+	}
+	// we are going to make two assumptions
+	// that our xpos is based on our top left
+	// that their target is based off of it's top left
+	
+	double storedTargetX = targetX_n;// + 0.5;
+	double storedTargetY = targetY_n;// + 0.5;
 
+	double movingCheckerX = xPos;// + 0.5;
+	double movingCheckerY = yPos;// + 0.5;
 
+	double incrementX = targetX_n - xPos;
+	double incrementY = targetY_n - yPos;
+
+	double magicNumber = max(GameVars->dAbs(incrementX), GameVars->dAbs(incrementY));
+
+	if(magicNumber != 0)	// damned black holes
+	{
+		// so now we have in an increment of 1 for our larger number and some percentage of this for the other number
+		magicNumber = 1/magicNumber;
+	}
+
+	incrementX *= magicNumber;
+	incrementY *= magicNumber;
+
+	bool done = false;
+
+	//cout << "Source = " << xPos << ", " << yPos << " and target = " << targetXn << ", " << targetYn << endl;
+	//cout << "increment X/y = " << incrementX << ", " << incrementY << endl;
+
+	movingCheckerX += incrementX;
+	movingCheckerY += incrementY;
+
+	while(!done)
+	{
+		if( (movingCheckerX >= 0) && (floor(movingCheckerX) < board->getBoardWidth()) &&
+			(movingCheckerY >= 0) && (floor(movingCheckerY) < board->getBoardHeight()) )
+		{
+			// check to see if there are any friendlies along the way
+			if(board->areThereAnyFriendsAt(movingCheckerX, movingCheckerY, type))
+			{
+				// hey look, there was
+				return true;
+			}
+		}
+
+		// make sure we're still on the baord, and not at the target yet
+		if( ((movingCheckerX > storedTargetX - incrementX) && (movingCheckerX > xPos)) ||
+			((movingCheckerX < storedTargetX - incrementX) && (movingCheckerX < xPos)) ||
+			((movingCheckerY > storedTargetY - incrementY) && (movingCheckerY > yPos)) ||
+			((movingCheckerY < storedTargetY  - incrementY) && (movingCheckerY < yPos)) ||
+			((movingCheckerX == storedTargetX - incrementX) && (movingCheckerY == storedTargetY - incrementY))
+			)
+		{
+			// when we're beyond the board, or have arrived at the target square
+			done = true;
+		}
+		//cout << "MovingCheckerX/y " << movingCheckerX << ", " << movingCheckerY << endl;
+		movingCheckerX += incrementX;
+		movingCheckerY += incrementY;
+		//cout << "MovingCheckerX/y " << movingCheckerX << ", " << movingCheckerY << endl;
+		//cout << "----------------------------------------------------------------------" << endl;
+	}
+	// we made it out with no obstructions, so there are no friendlies in the way
+	return false;
+}
+
+bool RVB_Entity::areThereAnyEntitiesInTheWay(double targetX_n, double targetY_n)
+{
+	// hmmm this code looks vaguely familiar...
+	// if they ask if you can see yourself, just say yeah we can
+	if((targetX_n == xPos) && (targetY_n == yPos))
+	{
+		return true;
+	}
+	// we are going to make two assumptions
+	// that our xpos is based on our top left
+	// that their target is based off of it's top left
+	
+	double storedTargetX = targetX_n;// + 0.5;
+	double storedTargetY = targetY_n;// + 0.5;
+
+	double movingCheckerX = xPos;// + 0.5;
+	double movingCheckerY = yPos;// + 0.5;
+
+	double incrementX = targetX_n - xPos;
+	double incrementY = targetY_n - yPos;
+
+	double magicNumber = max(GameVars->dAbs(incrementX), GameVars->dAbs(incrementY));
+
+	if(magicNumber != 0)	// damned black holes
+	{
+		// so now we have in an increment of 1 for our larger number and some percentage of this for the other number
+		magicNumber = 1/magicNumber;
+	}
+
+	incrementX *= magicNumber;
+	incrementY *= magicNumber;
+
+	bool done = false;
+
+	//cout << "Source = " << xPos << ", " << yPos << " and target = " << targetXn << ", " << targetYn << endl;
+	//cout << "increment X/y = " << incrementX << ", " << incrementY << endl;
+
+	while(!done)
+	{
+		if( (movingCheckerX >= 0) && (floor(movingCheckerX) < board->getBoardWidth()) &&
+			(movingCheckerY >= 0) && (floor(movingCheckerY) < board->getBoardHeight()) )
+		{
+			// check to see if there are any friendlies along the way
+			if(board->areThereAnyFriendsAt(movingCheckerX, movingCheckerY, type))
+			{
+				// hey look, there was
+				return true;
+			}
+			// now check to see if there is an enemy besides the one you've targeted
+			if(board->areThereAnyEnemiesAt(movingCheckerX, movingCheckerY, type))
+			{
+				// yep we found a different enemy than who we were shooting at
+				return true;
+			}
+		}
+
+		// make sure we're still on the baord, and not at the target yet
+		if( ((movingCheckerX > storedTargetX - incrementX) && (movingCheckerX > xPos)) ||
+			((movingCheckerX < storedTargetX - incrementX) && (movingCheckerX < xPos)) ||
+			((movingCheckerY > storedTargetY - incrementY) && (movingCheckerY > yPos)) ||
+			((movingCheckerY < storedTargetY  - incrementY) && (movingCheckerY < yPos)) ||
+			((movingCheckerX == storedTargetX - incrementX) && (movingCheckerY == storedTargetY - incrementY))
+			)
+		{
+			// when we're beyond the board, or have arrived at the target square
+			done = true;
+		}
+		//cout << "MovingCheckerX/y " << movingCheckerX << ", " << movingCheckerY << endl;
+		movingCheckerX += incrementX;
+		movingCheckerY += incrementY;
+		//cout << "MovingCheckerX/y " << movingCheckerX << ", " << movingCheckerY << endl;
+		//cout << "----------------------------------------------------------------------" << endl;
+	}
+	// we made it out with no obstructions, so there are no friendlies in the way
+	return false;
+}
 
 RVB_Entity* RVB_Entity::getEntityTarget()
 {
@@ -1326,7 +1632,9 @@ void RVB_Entity::setMoveTargetToHidingSpotFrom(RVB_Entity* someEntity)
 	{
 		for(int y = 0; y < boardHeight; y++)
 		{
-			if(!someEntity->entityCanSeeTargetAt(x, y))	// if someEntity cannot see target at x y we have a potential winner
+			if( (!someEntity->entityCanSeeTargetAt(x, y)) &&	// if someEntity cannot see target at x y we have a potential winner
+				(!board->isThereAnEntityAt(x, y)) && // and there's nobody standing there
+				(!board->isThereAnObstacleAt(x, y)) ) // and there's no obstacle there
 			{
 				distanceToTarget = GameVars->getDistanceToTarget(xPos, yPos, x, y);
 				if(distanceToTarget < bestDistanceSoFar)
@@ -1337,6 +1645,10 @@ void RVB_Entity::setMoveTargetToHidingSpotFrom(RVB_Entity* someEntity)
 				}
 			}
 		}
+	}
+	if(targetX != -1)
+	{
+		setTarget(targetX, targetY);
 	}
 }
 void RVB_Entity::setMoveTargetToVisibleHidingSpotFrom(RVB_Entity* someEntity)
@@ -1359,7 +1671,9 @@ void RVB_Entity::setMoveTargetToVisibleHidingSpotFrom(RVB_Entity* someEntity)
 			{
 				distanceToTarget = GameVars->getDistanceToTarget(xPos, yPos, x, y);
 				if((distanceToTarget < bestDistanceSoFar) &&
-				   (isThisSpotVisibleToMyTeam(x, y)) )
+				   (isThisSpotVisibleToMyTeam(x, y)) &&	
+					(!board->isThereAnEntityAt(x, y)) && // and there's nobody standing there
+					(!board->isThereAnObstacleAt(x, y)) ) // and there's no obstacle there
 				{
 					bestDistanceSoFar = distanceToTarget;
 					targetX = x;
@@ -1367,6 +1681,11 @@ void RVB_Entity::setMoveTargetToVisibleHidingSpotFrom(RVB_Entity* someEntity)
 				}
 			}
 		}
+	}
+
+	if(targetX != -1)
+	{
+		setTarget(targetX, targetY);
 	}
 }
 
@@ -1401,7 +1720,7 @@ void RVB_Entity::findExplorationTarget()
 		for(int y = 0; y < boardHeight; y++)
 		{
 			viableSpot = false;
-			if( (*myKnowledgeMap)[x][y]->getTileType() != TT_NULL)
+			if( (*myKnowledgeMap)[x][y]->getTileType() != TT_NULL && (*myKnowledgeMap)[x][y]->getTileType() != TT_OBSTACLE)
 			{
 				// filthy dirty code duplication begins...
 
@@ -1468,4 +1787,51 @@ void RVB_Entity::findExplorationTarget()
 		
 		setTarget(viableX[randNum], viableY[randNum]);
 	}
+}
+
+#ifndef innovation
+#error You forgot to define innovation.
+#endif
+
+void RVB_Entity::runToNearestFriendlyUnit()
+{
+	RVB_Entity* nearestFriendly = NULL;
+	RVB_Entity* tempEntity = NULL;
+
+	int boardWidth = board->getBoardWidth();
+	int boardHeight = board->getBoardHeight();
+
+	double closest = boardWidth * boardHeight;
+
+	for(int x = 0; x < boardWidth; x++)
+	{
+		for(int y = 0; y < boardWidth; y++)
+		{
+			if(board->isThereAnEntityAt(x,y))
+			{
+				tempEntity = board->getSelectableEntityAtGridCoord(x, y);
+				if(tempEntity->getType() == type)
+				{
+					double toCheck = GameVars->getDistanceToTarget(xPos, yPos, tempEntity->getXPos(), tempEntity->getYPos());
+					if(toCheck < closest)
+					{
+						nearestFriendly = tempEntity;
+					}
+				}
+			}
+		}
+	}
+
+	if(nearestFriendly != NULL)
+	{
+		setTarget(nearestFriendly->getXPos(), nearestFriendly->getYPos());
+		//// don't know if we want this here or not
+		myHigherState = CHASING;
+	}
+}
+
+void RVB_Entity::receivedRequestForHelp(RVB_Entity* entityChasing)
+{
+	setEnemyTarget(entityChasing);
+	setState(CHASING);
 }
