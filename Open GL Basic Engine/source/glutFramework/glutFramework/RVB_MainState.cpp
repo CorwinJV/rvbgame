@@ -26,20 +26,21 @@ void RVB_MainState::init()
 	currentMap->addEntity(RED, 5, 12, NORTH);
 	currentMap->addEntity(RED, 5, 15, NORTH);
 
-	//for(int x = 0; x < 25; x+=3)
-	//{
-	//	currentMap->addEntity(RED, 1, x, NORTH);
-	//	currentMap->addEntity(RED, 2, x, NORTH);
-	//	currentMap->addEntity(BLUE, 38, x, NORTH);
-	//	currentMap->addEntity(BLUE, 37, x, NORTH);
-	//}
+	for(int x = 0; x < 25; x+=3)
+	{
+		//currentMap->addEntity(RED, 1, x, NORTH);
+		//currentMap->addEntity(BLUE, 38, x, NORTH);
+
+		//currentMap->addEntity(RED, 2, x, NORTH);
+		//currentMap->addEntity(BLUE, 37, x, NORTH);
+	}
 
 
-	currentMap->addEntity(BLUE, 15, 3, NORTH);
-	currentMap->addEntity(BLUE, 15, 6, NORTH);
-	currentMap->addEntity(BLUE, 15, 9, NORTH);
-	currentMap->addEntity(BLUE, 15, 12, NORTH);
-	currentMap->addEntity(BLUE, 15, 15, NORTH);
+	currentMap->addEntity(BLUE, 34, 3, NORTH);
+	currentMap->addEntity(BLUE, 34, 6, NORTH);
+	currentMap->addEntity(BLUE, 34, 9, NORTH);
+	currentMap->addEntity(BLUE, 34, 12, NORTH);
+	currentMap->addEntity(BLUE, 34, 15, NORTH);
 
 	curMouseX = 0;
 	curMouseY = 0;
@@ -127,7 +128,12 @@ bool RVB_MainState::Draw()
 	// now draw all entities
 	currentMap->drawEntities(tileWidth, scaleFactor, mapOffsetX, mapOffsetY);
 
-	// then some fog
+	// update fog/knowledge map for red
+	// update fog/knowledge map for blue
+	currentMap->updateFog(RED);
+	currentMap->updateFog(BLUE);
+
+	// then some fog depending on who's turn it is
 	currentMap->drawFog(tileWidth, scaleFactor, mapOffsetX, mapOffsetY);
 
 
@@ -387,8 +393,11 @@ void RVB_MainState::processMouseClick(int button, int state, int x, int y)
 						if( (currentMap->areThereAnyEnemiesAt(gridPosX, gridPosY, (*selectedEntityList)[0]->getType())) ||
 							(currentMap->areThereAnyFriendsAt(gridPosX, gridPosY, (*selectedEntityList)[0]->getType())) )
 						{
-							setSelectedEntitiesEnemyTargets(gridPosX, gridPosY);
-							setSelectedEntitiesState(CHASING);
+							if((currentMap->getSelectableEntityAtGridCoord(gridPosX, gridPosY)->getHealth() > 0))
+							{
+								setSelectedEntitiesEnemyTargets(gridPosX, gridPosY);
+								setSelectedEntitiesState(CHASING);
+							}
 						}
 					}
 				}
@@ -464,37 +473,43 @@ void RVB_MainState::processMouseClick(int button, int state, int x, int y)
 			{
 				for(int j = top; j <= bottom; j++)
 				{
-					RVB_Entity* tempEntity = currentMap->getSelectableEntityAtGridCoord(i, j);
+					RVB_Entity* tempEntity = NULL;
+					tempEntity = currentMap->getSelectableEntityAtGridCoord(i, j);
 					
-
-					// If you click on an entity
-						// And control is held down
-					if(modifiers & GLUT_ACTIVE_CTRL)
+					if(tempEntity != NULL)
 					{
-						// Toggle selection of the entity you clicked on
-						if(tempEntity != NULL)
+						if((tempEntity->getType() == GameVars->mySide) || GameVars->mySide == GOD)
 						{
-							toggleSelectedEntity(tempEntity);
-						}
-					}
-					else
-					{
-						// select it
-						if(tempEntity != NULL)
-						{
-							//If the entity is not already selected
-							bool entityIsSelectedAlready = false;
-							vector<RVB_Entity*>::iterator itr = selectedEntityList->begin();
-							for(; itr != selectedEntityList->end(); itr++)
+							// If you click on an entity
+								// And control is held down
+							if(modifiers & GLUT_ACTIVE_CTRL)
 							{
-								if((*itr) == tempEntity)
+								// Toggle selection of the entity you clicked on
+								if(tempEntity != NULL)
 								{
-									entityIsSelectedAlready = true;
+									toggleSelectedEntity(tempEntity);
 								}
 							}
-							if(entityIsSelectedAlready == false)
+							else
 							{
-								selectedEntityList->push_back(tempEntity);
+								// select it
+								if(tempEntity != NULL)
+								{
+									//If the entity is not already selected
+									bool entityIsSelectedAlready = false;
+									vector<RVB_Entity*>::iterator itr = selectedEntityList->begin();
+									for(; itr != selectedEntityList->end(); itr++)
+									{
+										if((*itr) == tempEntity)
+										{
+											entityIsSelectedAlready = true;
+										}
+									}
+									if(entityIsSelectedAlready == false)
+									{
+										selectedEntityList->push_back(tempEntity);
+									}
+								}
 							}
 						}
 					}
@@ -559,8 +574,18 @@ void RVB_MainState::keyboardInput(unsigned char c, int x, int y)
 	case ' ':
 		currentMap->setAllEntityTargets(curMouseX, curMouseY);
 		break;
+	case 'o':
+		setSelectedEntitiesState(EXPLORE);
+		break;
+	case 'p':
+		setSelectedEntitiesState(SEEKANDDESTROY);
+		break;
+	case 'i':
+		setSelectedEntitiesState(EVADING);
+		break;
 	case 'r':
 	case 'R':
+		selectedEntityList->clear();
 		if(GameVars->mySide == RED)
 		{
 			GameVars->mySide = BLUE;
@@ -592,4 +617,3 @@ void RVB_MainState::keyboardInput(unsigned char c, int x, int y)
 		break;
 	}
 }
-

@@ -1,6 +1,3 @@
-// heh.. he said unit
-
-
 
 //#include "rvb_unit.h"
 //

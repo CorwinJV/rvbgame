@@ -5,6 +5,8 @@
 
 enum RVB_WeaponType { WEAPON_PISTOL, WEAPON_SHOTTY, WEAPON_RIFFLE };
 
+class RVB_Entity;
+
 class rvbWeapon
 {
 private:
@@ -25,7 +27,7 @@ private:
 public:
 	rvbWeapon();
 	rvbWeapon(int damage_n, int range_n, int clipSize_n, int clipAmmo_n, 
-			  RVB_WeaponType type_n, int fireRate_n, int reloadTime_n);
+			  RVB_WeaponType type_n, int fireRate_n, int reloadTime_n, RVB_Entity* whoseGun);
 	~rvbWeapon();
 
 	// setters and getters
@@ -37,6 +39,7 @@ public:
 	RVB_WeaponType getType();		// what kind of gun is it?
 	int getFireRate();				// how fast can the gun fire?
 	int getReloadTime();			// how long does it take to reload
+	RVB_Entity* whoseGunAmI;		// which entity is shooting this gun
 	
 	void setAmmoLeftInClip(int ammoLeft);	// sets the amount of ammo left
 
@@ -46,7 +49,7 @@ public:
 	// and what kind of gun you're using it returns how much ammo you have left after reloading the clip
 	int reload(int ammoLeft, int ammoInClip, RVB_WeaponType type_n);		
 
-	RVB_Bullet* shotFired(double xPos, double yPos, double targetX, double targetY);
+	RVB_Bullet* shotFired(double xPos, double yPos, double targetX, double targetY, double distance, RVB_Entity* target);
 };
 
 

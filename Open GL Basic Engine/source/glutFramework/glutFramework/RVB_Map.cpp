@@ -60,6 +60,23 @@ RVB_Map::RVB_Map(int mapSizeX, int mapSizeY)
 	mapOffsetY = 0;
 	cameraCenterX = mapWidth / 2;
 	cameraCenterY = mapHeight / 2;
+
+	// fog of war inits
+	uberFactor = 1;
+
+	redFog.resize(mapSizeX * uberFactor);
+	blueFog.resize(mapSizeX * uberFactor);
+	for(int x = 0; x < mapSizeX * uberFactor; x++)
+	{
+		redFog[x].resize(mapSizeY * uberFactor);
+		blueFog[x].resize(mapSizeY * uberFactor);
+		for(int y = 0; y < mapSizeY * uberFactor; y++)
+		{
+			redFog[x][y] = 1.0;
+			blueFog[x][y] = 1.0;
+		}
+	}
+
 }
 
 //====================
@@ -75,6 +92,22 @@ RVB_Map::~RVB_Map()
 //
 void RVB_Map::Update()
 {
+	//=====================
+	// BRING OUT YER DEAD
+	// Loop through our entities backwards so we can prune the dead ones
+	std::vector<RVB_Entity*>::reverse_iterator rItr = objectList.rbegin();
+	for(; rItr != objectList.rend(); rItr++)
+	{
+		if((*rItr)->getHealth() <= 0)
+		{
+			// We're not actually going to deallocate the memory for the dead guys
+			// but we're going to remove it from our object list.
+			//delete(*rItr);
+			objectList.erase(rItr.base() - 1);
+			break;
+		}
+	}
+
 	// Update all of the entities on our board
 	int tempLimit = objectList.size();
 	for(int xi = 0; xi < tempLimit; xi++)
@@ -248,7 +281,8 @@ RVB_Entity *RVB_Map::getSelectableEntityAtGridCoord(int gridX, int gridY)
 			for(int i = 0; i < size; i++)
 			{
 				if((objectList[i]->getXPos() == gridX) &&
-					(objectList[i]->getYPos() == gridY))
+					(objectList[i]->getYPos() == gridY) &&
+					(objectList[i]->getHealth() > 0) )
 				{
 					entityToReturn = objectList[i];
 				}
@@ -271,28 +305,46 @@ void RVB_Map::didBulletHitSomething()
 	// cycle through the bullets on the screen
 	for(int x = 0; x < size; x++)
 	{
-		// first check to make sure we haven't hit an obstacle along the way
-		if(hit = isThereAnObstacleAt(bulletList[x]->getBulletXPos(), bulletList[x]->getBulletYPos()))
-		{
-			cout << "Bullet hit an obstacle" << endl;
-			// deactivate the bullet
-			bulletList[x]->setActive(!hit);
-		}
+		double bulletXPos = bulletList[x]->getBulletXPos();
+		double bulletYPos = bulletList[x]->getBulletYPos();
 
-		// see if any of them has hit an entity on the screen
-		if(hit = isThereAnEntityAt(bulletList[x]->getBulletXPos(), bulletList[x]->getBulletYPos()))
+		if(bulletXPos > 0 && bulletYPos > 0 && bulletXPos < mapWidth && bulletYPos < mapHeight)
 		{
-			// get all the bullet info
-			tempDamage   = bulletList[x]->getDamage();
-			tempRange    = bulletList[x]->getRange();
-			tempDistTrav = bulletList[x]->getDistanceTraveled();
-			// calculate the damage based on how far the bullet has traveled
-			bulletList[x]->calcDamage(tempDamage, tempRange, tempDistTrav);
-			// at this point see who we hit and apply the damage
-			tempEntity = getSelectableEntityAtGridCoord(bulletList[x]->getBulletXPos(), bulletList[x]->getBulletYPos());
-			tempEntity->applyDamage(bulletList[x]->getDamage());
-			// now set the bullet to inactive
-			bulletList[x]->setActive(!hit);
+			// first check to make sure we haven't hit an obstacle along the way
+			if(hit = isThereAnObstacleAt(bulletList[x]->getBulletXPos(), bulletList[x]->getBulletYPos()))
+			{
+				cout << "Bullet hit an obstacle" << endl;
+				// deactivate the bullet
+				bulletList[x]->setActive(!hit);
+				// bullet did not hit its intended target
+				bulletList[x]->setSuccess(false);
+			}
+
+			// see if any of them has hit an entity on the screen
+			if(hit = isThereAnEntityAt(bulletList[x]->getBulletXPos(), bulletList[x]->getBulletYPos()))
+			{
+				// get all the bullet info
+				tempDamage   = bulletList[x]->getDamage();
+				tempRange    = bulletList[x]->getRange();
+				tempDistTrav = bulletList[x]->getDistanceTraveled();
+				// calculate the damage based on how far the bullet has traveled
+				bulletList[x]->calcDamage(tempDamage, tempRange, tempDistTrav);
+				// at this point see who we hit and apply the damage
+				tempEntity = getSelectableEntityAtGridCoord(bulletList[x]->getBulletXPos(), bulletList[x]->getBulletYPos());
+				if(tempEntity != NULL)
+				{
+					tempEntity->applyDamage(bulletList[x]->getDamage());
+				}
+				// now set the bullet to inactive
+				bulletList[x]->setActive(!hit);
+				// for now we're setting this to true if it hits any entity, 
+				// soon to change it to if we hit our intended target
+				bulletList[x]->setSuccess(true);
+			}
+		}
+		else
+		{
+			bulletList[x]->setActive(false);
 		}
 	}
 }
@@ -360,7 +412,10 @@ bool RVB_Map::isTileValidMove(int xPos, int yPos)
 		if((objectList[i]->getXPos() == xPos) &&
 			(objectList[i]->getYPos() == yPos))
 		{
-			return false;
+			if(objectList[i]->getHealth() > 0)
+			{
+				return false;
+			}
 		}
 	}
 
@@ -597,101 +652,116 @@ void RVB_Map::makeBullet(RVB_Bullet *newBullet)
 	bulletList.push_back(newBullet);
 }
 
-void RVB_Map::drawFog(int tileWidth, double scaleFactor, double mapOffsetX, double mapOffsetY)
+
+void RVB_Map::updateFog(entityType newType)
 {
 	// now its time for fog of war
-	vector<vector<double>> myFog;
-
-	int uberFactor = 1;
-
 	int mapWidth = mBoard.size();
 	int mapHeight = mBoard[0].size();
 
-	// first lets fog this bitch up
-	myFog.resize(mapWidth * uberFactor);
-	for(int x = 0; x < mapWidth * uberFactor; x++)
-	{
-		myFog[x].resize(mapHeight * uberFactor);
-		for(int y = 0; y < mapHeight * uberFactor; y++)
-		{
-			if(GameVars->mySide != GOD)
-			{
-				myFog[x][y] = 1.0;
-			}
-			else
-			{
-				myFog[x][y] = 0.0;
-			}
-		}
-	}
-
-	// now lets go and unfog some areas
-
+	vector<vector<double>>* fogToUse;
 	vector<vector<RVB_MapTile*>> *knowledgeMapToUse = NULL;
-	switch(GameVars->mySide)
+
+	switch(newType)
 	{
 	case RED:
+		fogToUse = &redFog;
 		knowledgeMapToUse = &redKnowledgeMap;
 		break;
 	case BLUE:
+		fogToUse = &blueFog;
 		knowledgeMapToUse = &blueKnowledgeMap;
 		break;
 	default:
+		fogToUse = NULL;
+		return;
 		break;
 	}
 
-	if(GameVars->mySide != GOD)
+
+	// first lets fog this bitch up
+	for(int x = 0; x < mapWidth * uberFactor; x++)
 	{
-		double visionCalc = entityVisionRadius + 1;
-		// iterate through entity list
-		for(int entX = 0; entX < (int)objectList.size(); entX++)
+		for(int y = 0; y < mapHeight * uberFactor; y++)
 		{
-			entityType entityAt = objectList[entX]->getType();
-			
-			if(entityAt == GameVars->mySide)
-			{
-				int entityX = objectList[entX]->getXPos();
-				int entityY = objectList[entX]->getYPos();
+			(*fogToUse)[x][y] = 1.0;
+		}
+	}
 
-				for(double x = (entityX * uberFactor) - (visionCalc * uberFactor); x < (entityX * uberFactor) + ((visionCalc + 1) * uberFactor); x+= 1)
-				{ 
-					for(double y = (entityY * uberFactor) - (visionCalc * uberFactor); y < (entityY * uberFactor) + ((visionCalc + 1) * uberFactor); y+= 1)
+	
+
+
+	double visionCalc = entityVisionRadius + 1;
+	// iterate through entity list
+	for(int entX = 0; entX < (int)objectList.size(); entX++)
+	{
+		entityType entityAt = objectList[entX]->getType();
+		
+		if(entityAt == newType)
+		{
+			int entityX = objectList[entX]->getXPos();
+			int entityY = objectList[entX]->getYPos();
+
+			for(double x = (entityX * uberFactor) - (visionCalc * uberFactor); x < (entityX * uberFactor) + ((visionCalc + 1) * uberFactor); x+= 1)
+			{ 
+				for(double y = (entityY * uberFactor) - (visionCalc * uberFactor); y < (entityY * uberFactor) + ((visionCalc + 1) * uberFactor); y+= 1)
+				{
+					if((x >= 0) && (x < mapWidth * uberFactor) && 
+					   (y >= 0) && (y < mapHeight * uberFactor))
 					{
-						if((x >= 0) && (x < mapWidth * uberFactor) && 
-						   (y >= 0) && (y < mapHeight * uberFactor))
-						{
-							double distanceToTarget = GameVars->getDistanceToTarget(x, y, (entityX + 0.25) * uberFactor, (entityY + 0.25) * uberFactor);
-							
-							/*if ((mBoard[x / uberFactor][y / uberFactor]->getTileType() == TT_OBSTACLE)) ||
-								(objectList[entX]->entityCanSeeTargetAt(x / uberFactor, y / uberFactor)))
-							{*/
-								if(distanceToTarget <= visionCalc * uberFactor)
+						double distanceToTarget = GameVars->getDistanceToTarget(x, y, (entityX + 0.25) * uberFactor, (entityY + 0.25) * uberFactor);
+						
+						//// this commented out line below turns on the shadow effect that makes for true line of sight with regards to obstacles.
+						// this lags like a filthy whore due to the entityCanSeeTargetAt function so yeah fuck that
+
+						/*if ((mBoard[x / uberFactor][y / uberFactor]->getTileType() == TT_OBSTACLE)) ||
+							(objectList[entX]->entityCanSeeTargetAt(x / uberFactor, y / uberFactor)))
+						{*/
+							if(distanceToTarget <= visionCalc * uberFactor)
+							{
+								(*fogToUse)[x][y] -= (1.0/uberFactor * (((visionCalc * uberFactor + 1) - distanceToTarget)) / visionCalc * uberFactor);
+								
+								// updating knowledge map
+								if((*fogToUse)[(int)(x / uberFactor)][(int)(y / uberFactor)] < 0.5)
 								{
-									myFog[x][y] -= (1.0/uberFactor * (((visionCalc * uberFactor + 1) - distanceToTarget)) / visionCalc * uberFactor);
-									
-									// updating knowledge map
-									if(myFog[(int)(x / uberFactor)][(int)(y / uberFactor)] < 0.5)
-									{
-										// if we can see this tile well enough to see what's there..
-										(*knowledgeMapToUse)[(int)(x / uberFactor)][(int)(y / uberFactor)]->setTileType(mBoard[(int)(x / uberFactor)][(int)(y / uberFactor)]->getTileType());
+									// if we can see this tile well enough to see what's there..
+									(*knowledgeMapToUse)[(int)(x / uberFactor)][(int)(y / uberFactor)]->setTileType(mBoard[(int)(x / uberFactor)][(int)(y / uberFactor)]->getTileType());
 
-									}
-
-									if(myFog[x][y] < 0)
-									{
-										myFog[x][y] = 0;
-									}
 								}
-							//}
-						}
+								if((*fogToUse)[x][y] < 0)
+								{
+									(*fogToUse)[x][y] = 0;
+								}
+							}
+						//}
 					}
 				}
 			}
 		}
 	}
-	// now lets draw the fog!
-	// set fog dimensions
+}
 
+void RVB_Map::drawFog(int tileWidth, double scaleFactor, double mapOffsetX, double mapOffsetY)
+{
+	
+	vector<vector<double>>* fogToUse;
+	vector<vector<RVB_MapTile*>> *knowledgeMapToUse = NULL;
+
+	switch(GameVars->mySide)
+	{
+	case RED:
+		fogToUse = &redFog;
+		knowledgeMapToUse = &redKnowledgeMap;
+		break;
+	case BLUE:
+		fogToUse = &blueFog;
+		knowledgeMapToUse = &blueKnowledgeMap;
+		break;
+	default:
+		fogToUse = NULL;
+		return;
+		break;
+	}
 	if(knowledgeMapToUse != NULL)
 	{
 		for(int x = 0; x < mapWidth * uberFactor; x++)
@@ -701,7 +771,7 @@ void RVB_Map::drawFog(int tileWidth, double scaleFactor, double mapOffsetX, doub
 				// now draw it
 				if((*knowledgeMapToUse)[(int)(x / uberFactor)][(int)(y / uberFactor)]->getTileType() == TT_NULL)
 				{
-					GameVars->fog->drawImageFaded(myFog[x][y],
+					GameVars->fog->drawImageFaded((*fogToUse)[x][y],
 												(tileWidth*scaleFactor / uberFactor),			 // Width
 												(tileWidth*scaleFactor / uberFactor),			 // Height
 												((x*tileWidth)*scaleFactor / uberFactor )+mapOffsetX,  // X
@@ -712,9 +782,9 @@ void RVB_Map::drawFog(int tileWidth, double scaleFactor, double mapOffsetX, doub
 					// this is where knowledge map said to go ahead and draw what's here... we need to see if there's an enemy unit here
 					// if there is, we need to redraw the tile first...
 					
-					if(myFog[x][y] <= 0.5)
+					if((*fogToUse)[x][y] <= 0.5)
 					{
-						GameVars->fog->drawImageFaded(myFog[x][y],
+						GameVars->fog->drawImageFaded((*fogToUse)[x][y],
 												(tileWidth*scaleFactor / uberFactor),			 // Width
 												(tileWidth*scaleFactor / uberFactor),			 // Height
 												((x*tileWidth)*scaleFactor / uberFactor )+mapOffsetX,  // X
@@ -738,9 +808,34 @@ void RVB_Map::drawEntities(int tileWidth, double scaleFactor, int mapOffsetX, in
 {
 	int tempLimit = objectList.size();
 
+	// draw dead entities
 	for(int xi = 0; xi < tempLimit; xi++)
 	{
-		objectList[xi]->Draw(tileWidth, scaleFactor, mapOffsetX, mapOffsetY);
+		if(objectList[xi]->getHealth() <= 0)
+		{
+			objectList[xi]->Draw(tileWidth, scaleFactor, mapOffsetX, mapOffsetY);
+		}
+	}
+
+	// draw not dead entities
+	for(int xi = 0; xi < tempLimit; xi++)
+	{
+		if(objectList[xi]->getHealth() > 0)
+		{
+			objectList[xi]->Draw(tileWidth, scaleFactor, mapOffsetX, mapOffsetY);
+		}
+	}
+}
+
+void RVB_Map::helpRequested(RVB_Entity* entityChasing, entityType team)
+{
+	int size = objectList.size();
+	for(int i = 0; i < size; i++)
+	{
+		if(objectList[i]->getType() == team)
+		{
+			objectList[i]->receivedRequestForHelp(entityChasing);
+		}
 	}
 }
 

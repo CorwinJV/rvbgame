@@ -16,7 +16,7 @@ rvbWeapon::rvbWeapon()
 }
 
 rvbWeapon::rvbWeapon(int damage_n, int range_n, int clipSize_n, int clipAmmo_n, 
-					 RVB_WeaponType type_n, int fireRate_n, int reloadTime_n)
+					 RVB_WeaponType type_n, int fireRate_n, int reloadTime_n, RVB_Entity* whoseGun)
 {
 	damage = damage_n;
 	range = range_n;
@@ -25,6 +25,7 @@ rvbWeapon::rvbWeapon(int damage_n, int range_n, int clipSize_n, int clipAmmo_n,
 	type = type_n;
 	firingRate = fireRate_n;
 	reloadTime = reloadTime_n;
+	whoseGunAmI = whoseGun;
 
 	closeRange = range/3;
 	mediumRange = 2*closeRange;
@@ -147,8 +148,11 @@ int rvbWeapon::reload(int ammoLeft, int ammoInClip, RVB_WeaponType type_n)
 	return ammoPool;
 }
 
-RVB_Bullet* rvbWeapon::shotFired(double xPos, double yPos, double targetX, double targetY)
+RVB_Bullet* rvbWeapon::shotFired(double xPos, double yPos, double targetX, double targetY, double distance,
+								 RVB_Entity* target)
 {
+	double distanceToTarget = distance;
+	RVB_Entity* targetEntity = target;
 	// these two lines of code takes into account enemies firing to the left of you
 	double tempX = GameVars->dAbs(targetX - xPos);
 	double tempY = GameVars->dAbs(targetY - yPos);
@@ -167,7 +171,10 @@ RVB_Bullet* rvbWeapon::shotFired(double xPos, double yPos, double targetX, doubl
 		tempYSpeed *= -1;
 	}
 
-	RVB_Bullet* tempBullet = new RVB_Bullet(xPos, yPos, damage, tempXSpeed, tempYSpeed, 2 /*speed*/, range, (RVB_BulletType)type);
+	//create the new bullet
+	RVB_Bullet* tempBullet = new RVB_Bullet(xPos, yPos, damage, tempXSpeed, tempYSpeed, 2 /*speed*/, range, 
+							(RVB_BulletType)type, whoseGunAmI, targetEntity, distanceToTarget);
 
+	// return the newly created bullet
 	return tempBullet;
 }
