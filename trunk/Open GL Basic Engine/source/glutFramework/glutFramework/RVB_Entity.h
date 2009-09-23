@@ -2,11 +2,12 @@
 #define RVB_ENTITY_H
 
 #include <vector>
-#include "RVB_Path.h"
 #include <ctime>
+#include "RVB_Path.h"
 #include "RVB_weapon.h"
 #include "ammoPack.h"
 #include "RVB_Bullet.h"
+#include "fuzzyGraphStorage.h"
 
 using namespace std; // syphilis
 
@@ -118,8 +119,10 @@ private:
 	bool isAnyoneLookingAtMeThatICanSee();	// checks if there's any enemies that are targetting me that i can actually see
 	RVB_Entity* whoIsLookingAtMe();			// lets the target know who's looking at them
 	bool isAnyoneChasingMe();				// checks if there's any enemies that are chasing me
-	bool isAnyoneChasingMeThatICanSee();	// checks if there's any enemies thar are chasing me that i can see
+	bool isAnyoneChasingMeThatICanSee();	// checks if there's any enemies that are chasing me that i can see
+	bool isAnyoneAttackingMeThatICanSee();	// checks if there's any enemies that are attacking me that i can see
 	RVB_Entity* whoIsChasingMe();			// lets the target know who's chasing them
+	RVB_Entity* whoIsAttackingMe();			// lets the target know who's attacking them
 	bool isMyTargetChasingMe();				// checks if my currently selected target is chasing me
 	bool isThisEntityVisibleToMyTeam(RVB_Entity* someEntity);	// pass in an entity pointer it lets you know if that entity is visible to your team
 	bool isThisSpotVisibleToMyTeam(double checkX, double checkY);	// pass in an x/y coord to see if that spot is visible to your team
@@ -130,6 +133,8 @@ private:
 	bool canStillSeeEnemy();				// finds out if you can still see your enemy
 	void findExplorationTarget();			// finds a valid exploration target
 	void runToNearestFriendlyUnit();		// sets movement target to the nearest friendly unit
+
+	fuzzyGraphStorage myFuzzyGraphStore;	// Stores all of the graphs we want to register, used for fuzzy logic.
 };
 
 
