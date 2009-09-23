@@ -93,6 +93,10 @@ bool RVB_MainState::Update()
 		panX = 0;
 	}
 	currentMap->setOffsetX(panX);*/
+	/*for(int x = 0; x < selectedEntityList->size(); x++)
+	{
+		cout << "Higher State = " << (*selectedEntityList)[x]->getHigherState() << " | Lower State = " << (*selectedEntityList)[x]->getLowerState() << endl;
+	}*/
 	currentMap->Update();
 	return true;
 }

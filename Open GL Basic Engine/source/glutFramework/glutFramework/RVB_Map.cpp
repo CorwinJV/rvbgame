@@ -296,7 +296,6 @@ void RVB_Map::didBulletHitSomething()
 {
 	int size = bulletList.size();
 	//int mapSize  = mBoard.size();
-	bool hit = false;
 	double tempDamage   = 0.0;
 	double tempRange    = 0.0;
 	double tempDistTrav = 0.0;
@@ -308,20 +307,21 @@ void RVB_Map::didBulletHitSomething()
 		double bulletXPos = bulletList[x]->getBulletXPos();
 		double bulletYPos = bulletList[x]->getBulletYPos();
 
-		if(bulletXPos > 0 && bulletYPos > 0 && bulletXPos < mapWidth && bulletYPos < mapHeight)
+		// make sure the bullet is still on the board, and that it's active
+		if(bulletXPos > 0 && bulletYPos > 0 && bulletXPos < mapWidth && bulletYPos < mapHeight && bulletList[x]->getActive())
 		{
 			// first check to make sure we haven't hit an obstacle along the way
-			if(hit = isThereAnObstacleAt(bulletList[x]->getBulletXPos(), bulletList[x]->getBulletYPos()))
+			if(isThereAnObstacleAt(bulletList[x]->getBulletXPos(), bulletList[x]->getBulletYPos()))
 			{
 				cout << "Bullet hit an obstacle" << endl;
 				// deactivate the bullet
-				bulletList[x]->setActive(!hit);
+				bulletList[x]->setActive(false);
 				// bullet did not hit its intended target
 				bulletList[x]->setSuccess(false);
 			}
 
 			// see if any of them has hit an entity on the screen
-			if(hit = isThereAnEntityAt(bulletList[x]->getBulletXPos(), bulletList[x]->getBulletYPos()))
+			if(isThereAnEntityAt(bulletList[x]->getBulletXPos(), bulletList[x]->getBulletYPos()) && bulletList[x]->getActive())
 			{
 				// get all the bullet info
 				tempDamage   = bulletList[x]->getDamage();
@@ -336,7 +336,7 @@ void RVB_Map::didBulletHitSomething()
 					tempEntity->applyDamage(bulletList[x]->getDamage());
 				}
 				// now set the bullet to inactive
-				bulletList[x]->setActive(!hit);
+				bulletList[x]->setActive(false);
 				// for now we're setting this to true if it hits any entity, 
 				// soon to change it to if we hit our intended target
 				bulletList[x]->setSuccess(true);

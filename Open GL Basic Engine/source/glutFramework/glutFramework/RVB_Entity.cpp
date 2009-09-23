@@ -1,7 +1,6 @@
 #include "RVB_entity.h" 
 #include "RVB_Map.h"
 #include "math.h"
-//#define innovation true
 
 //		FUN NAME  rvbWeapon(dmg, range, clip, ammo,       type,		firing rate, reload time, who fired the shot)
 #define RVBPISTOL rvbWeapon(10,      6,   10,   10, WEAPON_PISTOL,	1000,		 1000,        this);
@@ -11,6 +10,17 @@
 
 void RVB_Entity::Update()
 {
+	// Fuzzy Graph Testing.. DEBUG
+	//myFuzzyGraphStore.addType("shotgun", 10.0, 15.0, 20.0, 35);
+	//myFuzzyGraphStore.printGraphDataDEBUG("shotgun");
+	//myFuzzyGraphStore.tweakFuzzy("shotgun", 10.0, 20.0, 25.0, 50.0);
+	//myFuzzyGraphStore.printGraphDataDEBUG("shotgun");
+	//myFuzzyGraphStore.printMapSizeDEBUG();
+	//myFuzzyGraphStore.addType("riffle", 2.0, 10.0, 15.0, 20.0);
+	//myFuzzyGraphStore.printGraphDataDEBUG("false");
+	//myFuzzyGraphStore.printGraphDataDEBUG("riffle");
+
+
 	double distanceToTarget = 0;
 	RVB_Bullet* tempBullet;
 
@@ -18,6 +28,7 @@ void RVB_Entity::Update()
 	{
 		return;
 	}
+
 	// Query how long it's been since our last update
 	timeSinceLastUpdate = clock() - timeOfLastUpdate;
 	timeSinceLastFire   = clock() - timeOfLastFire;
@@ -34,7 +45,6 @@ void RVB_Entity::Update()
 		switch(myLowerState)
 		{
 		case ATTACKING:
-			
 			//cout << "bang, bang, BAAAAAAAANG, you dead?" << endl;
 			
 			// if we're trying to fire at something that isn't an entity
@@ -42,6 +52,13 @@ void RVB_Entity::Update()
 			{
 				fireAtX = myEntityTarget->getXPos();
 				fireAtY = myEntityTarget->getYPos();
+			}
+			else
+			{
+				// WTF are we in attack if we have no target? GTFO!
+				myHigherState = HIGHERIDLE;
+				myLowerState = IDLE;
+				break;
 			}
 			
 			// see if the firing rate of the gun we're using will let us fire again
@@ -85,14 +102,17 @@ void RVB_Entity::Update()
 						fireFromY -= 0.5;
 					}
 
+					// calculate how far we are from our target
+					distanceToTarget = GameVars->getDistanceToTarget(fireFromX, fireFromY, fireAtX, fireAtY);
+
 					// make sure someone from our team, or an obstacle isnt between us and the target
-					if(!isThereAFriendlyEntityInTheWay(fireAtX, fireAtY) && entityCanSeeTargetAt(fireAtX, fireAtY))
+					// also that the target is visible and within the range of our current weapon
+					if(!isThereAFriendlyEntityInTheWay(fireAtX, fireAtY) && entityCanSeeTargetAt(fireAtX, fireAtY)
+						&& isThisEntityVisibleToMyTeam(myEntityTarget) && (distanceToTarget <= currentWeapon->getRange()))
 					{
 						// if we're not shooting the shotgun
 						if(!(currentWeapon->getType() == WEAPON_SHOTTY))
 						{			
-							// calculate how far we are from our target
-							distanceToTarget = GameVars->getDistanceToTarget(fireFromX, fireFromY, fireAtX, fireAtY);
 							// SHOOT!
 							tempBullet = currentWeapon->shotFired(fireFromX , fireFromY , fireAtX, fireAtY, distanceToTarget, myEntityTarget);
 							board->makeBullet(tempBullet);
@@ -107,8 +127,6 @@ void RVB_Entity::Update()
 						}
 						else	//otherwise we are shooting the shotgun and have to make multiple shots
 						{
-							// calculate how far we are from our target
-							distanceToTarget = GameVars->getDistanceToTarget(fireFromX, fireFromY, fireAtX, fireAtY);
 							for(int x = 0; x < shotgunBullets; x++)
 							{
 								// create the bullet and fire it
@@ -133,8 +151,9 @@ void RVB_Entity::Update()
 					}
 					else	// there is a friendly entity, or obstacle in the way, so we need to move
 					{
-						cout << "Someone is in the way" << endl;
+						//cout << "Someone is in the way" << endl;
 						// call function to create a new path here
+						myHigherState = CHASING;
 					}
 				}
 				//otherwise try to reload
@@ -183,6 +202,7 @@ void RVB_Entity::Update()
 							break;
 						default:
 							cout << "something is broke, we returned a type of gun that doesnt exist in attacking state" << endl;
+							myHigherState = CHASING;
 							break;
 						}
 					}
@@ -299,6 +319,9 @@ bool RVB_Entity::canStillSeeEnemy()
 			{
 				//	cout << "found an enemy that's close and visible" << endl;
 				// ok now we have the closest enemy so far and its within a friendly entity's vision radius
+				// ****************************
+				// RIGHT HERE IS LINE OF SIGHT 
+				// ****************************
 			
 				return true;
 			}
@@ -378,12 +401,11 @@ void RVB_Entity::performBrainFunction()
 			{
 				// see if we are in any weapon range of our enemy
 				
-
-				// for now this will just check weapon 1
-				if(distanceToTarget < currentWeapon->getRange())
+				if(distanceToTarget < currentWeapon->getRange() && isThisSpotVisibleToMyTeam(myEntityTarget->getXPos(), myEntityTarget->getYPos()) )
 				{
 					// if so, set state to attacking
 					myLowerState = ATTACKING;
+					doneMoving = true;
 					// and break
 					break;
 				}
@@ -628,11 +650,38 @@ void RVB_Entity::performBrainFunction()
 		break;
 
 	case HIGHERATTACKING:
+		myLowerState = ATTACKING;
 		break;
 
 	case HIGHERIDLE:
 		myLowerState = IDLE;
 
+		myEntityTarget = NULL;
+		// scan for target (enemies)
+		doEnemyScan();
+
+		// if we have a target
+		if(myEntityTarget != NULL)
+		{
+			// SHOOOT!
+			myHigherState = HIGHERATTACKING;
+			myLowerState = ATTACKING;
+		}
+
+		////is anyone attacking me?
+		//if(isAnyoneAttackingMeThatICanSee())
+		//{
+		//	// find out who is attacking me
+		//	tempEntity = whoIsAttackingMe();
+		//	if(tempEntity != NULL)
+		//	{
+		//		// if so, fight back damnit!
+		//		setEnemyTarget(tempEntity);
+		//		setTarget(tempEntity->getXPos(), tempEntity->getYPos());
+		//		myLowerState = ATTACKING;
+		//		myHigherState = ATTACKMOVE;
+		//	}
+		//}
 		break;
 
 	case ATTACKOPTIMAL:
@@ -1054,7 +1103,7 @@ void RVB_Entity::setPosition(int newX, int newY)
 RVB_Entity::RVB_Entity(entityType newType, int newX, int newY, entityDirection newDirection, RVB_Map* parentBoard, vector<RVB_Entity*>* boardObjectList)
 	:timeOfLastUpdate(0), timeSinceLastUpdate(0), timeStep(0.5),
 	movementSourceNodeX(-1), movementSourceNodeY(-1), completionPercentage(0.0),
-	defaultMovementIncr(.1), doneMoving(true)
+	defaultMovementIncr(.1), doneMoving(true), myFuzzyGraphStore()
 {
 	xPos = newX;
 	yPos = newY;
@@ -1451,6 +1500,36 @@ RVB_Entity* RVB_Entity::whoIsChasingMe()
 	return thisDudeIsChasinMe;
 }
 
+RVB_Entity* RVB_Entity::whoIsAttackingMe()
+{
+	int numEntities = (*objectList).size();
+	// if we ever make a 10000x10000 board, then this number needs to get bigger
+	double closest = 1000000.0;
+	double checkClosest  = 0.0;
+	RVB_Entity* thisDudeIsShootinAtMe = NULL;
+
+	for(int x = 0; x < numEntities; x++)
+	{
+		if( ((*objectList)[x]->getHealth() > 0) &&				// is it alive?
+			((*objectList)[x]->getType() != type) &&			// is it an enemy
+			((*objectList)[x]->getEntityTarget() == this) &&	// is it looking at me?
+			((*objectList)[x]->getLowerState() == ATTACKING))	// is it attacking me?
+		{
+			// see how far away the guy coming at you is
+			checkClosest = GameVars->getDistanceToTarget(xPos, yPos, (*objectList)[x]->getXPos(), (*objectList)[x]->getYPos());
+			// see if he's the closest to you
+			if(checkClosest < closest)
+			{
+				closest = checkClosest;
+				thisDudeIsShootinAtMe = (*objectList)[x];
+			}
+		}					
+	}
+
+	// return the pointer whether someone is chasin you or not
+	return thisDudeIsShootinAtMe;
+}
+
 bool RVB_Entity::isThisEntityVisibleToMyTeam(RVB_Entity* someEntity)
 {
 	// we've found an enemy!, lets check its distance
@@ -1538,6 +1617,29 @@ bool RVB_Entity::isThisSpotVisibleToMyTeam(double checkX, double checkY)
 			}
 		}
 	}
+	return false;
+}
+
+bool RVB_Entity::isAnyoneAttackingMeThatICanSee()
+{
+	// see how big our vector of entities is
+	int numEntities = (*objectList).size();
+
+	// search through all the entities
+	for(int x = 0; x < numEntities; x++)
+	{
+		if( ((*objectList)[x]->getHealth() > 0) &&				// is it alive?
+			((*objectList)[x]->getType() != type) &&			// is it an enemy
+			((*objectList)[x]->getEntityTarget() == this) &&	// is it looking at me?
+			((*objectList)[x]->getLowerState() == ATTACKING) && // is it attacking me?
+			(isThisEntityVisibleToMyTeam((*objectList)[x])) )	// is it visible to my team?
+		{
+			// all conditions have been met, yes indeed I am being attacking
+			return true;
+		}					
+	}
+
+	// nope, noone is attacking me
 	return false;
 }
 
@@ -1789,9 +1891,6 @@ void RVB_Entity::findExplorationTarget()
 	}
 }
 
-#ifndef innovation
-#error You forgot to define innovation.
-#endif
 
 void RVB_Entity::runToNearestFriendlyUnit()
 {
