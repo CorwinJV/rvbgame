@@ -181,6 +181,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\desirabilityMatrix.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\desirabilityPair.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\fuzzy.cpp"
 				>
 			</File>
@@ -288,6 +296,14 @@
 			</File>
 			<File
 				RelativePath=".\bioWrapper.h"
+				>
+			</File>
+			<File
+				RelativePath=".\desirabilityMatrix.h"
+				>
+			</File>
+			<File
+				RelativePath=".\desirabilityPair.h"
 				>
 			</File>
 			<File

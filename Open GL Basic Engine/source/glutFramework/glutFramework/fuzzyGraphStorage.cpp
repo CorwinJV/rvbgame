@@ -2,7 +2,7 @@
 
 fuzzyGraphStorage::fuzzyGraphStorage()
 {
-//	graphMap["awesome"] = new fuzzyGraph("awesome", 10, 10, 10, 10);
+
 }
 
 fuzzyGraphStorage::~fuzzyGraphStorage()
@@ -25,6 +25,12 @@ void fuzzyGraphStorage::addType(string graphKey, double low, double medStart, do
 	
 	availableGraphs[graphKey] = new fuzzyGraph(low, medStart, medEnd, high);
 }
+
+void fuzzyGraphStorage::addDesirabilityMatrix(string matrixKey, desirabilityMatrix mtx)
+{	
+	availableDesirabilityMatrices[matrixKey] = mtx;
+}
+
 
 void fuzzyGraphStorage::tweakFuzzy(string graphKey, double newLow, double newMedStart, double newMedEnd, double newHigh)
 {
@@ -54,8 +60,45 @@ void fuzzyGraphStorage::getFuzzy(string graphKey, double input, double &outputLo
 	}
 }
 
-void fuzzyGraphStorage::brainify(vector<fuzzyInput*> inputs, desirability &outputType, double &outputValue)
+void fuzzyGraphStorage::brainify(vector<fuzzyInput*> inputs, desirability &outputType, double &outputValue, string matrixKey)
 {
+	//=================================
+	// Find the highest vals for 
+	// undesirable, desirable, and 
+	// very desirable.
+	vector<vector<desirabilityPair*>>* currentDesirabilityList = NULL;
+	vector<vector<desirabilityPair*>>::iterator dListItr;
+	vector<desirabilityPair*>::iterator innerDListItr;
+
+	// Find the highest "undesirable"
+	currentDesirabilityList = availableDesirabilityMatrices[matrixKey].getDesirabilityCombos(LOW);
+	dListItr = currentDesirabilityList->begin();
+	double highestLow = 0.0;
+	for(; dListItr != currentDesirabilityList->end(); dListItr++)
+	{
+		// Iterate through each "combination" of pairs
+		innerDListItr = (*dListItr).begin();
+		double runningTotal = 1.0;
+		for(; innerDListItr != (*dListItr).end(); innerDListItr++)
+		{
+			// All of the elements we find in here are considered desirability pairs
+			string graphName = (*innerDListItr)->graphID;
+			double graphsFuzzyValue = availableGraphs[graphName]->getFuzzyDataPortion((*innerDListItr)->rating);
+			runningTotal = FuzzyAND(runningTotal, graphsFuzzyValue);
+		}
+		// We've reached the end of a "combination" of pairs
+		// Store the highest value for each combination as highestLow
+		highestLow = FuzzyOR(highestLow, runningTotal);
+	}
+
+	// Find the highest "desirable"
+	currentDesirabilityList = availableDesirabilityMatrices[matrixKey].getDesirabilityCombos(MEDIUM);
+	
+
+	// Find the highest "very desirable"
+	currentDesirabilityList = availableDesirabilityMatrices[matrixKey].getDesirabilityCombos(HIGH);
+
+
 	//// fuzzy data to be stored
 	//desirability closeLow = ok;
 	//desirability closeMedium = very;
@@ -66,7 +109,10 @@ void fuzzyGraphStorage::brainify(vector<fuzzyInput*> inputs, desirability &outpu
 	//desirability farLow = bad;
 	//desirability farMedium = bad;
 	//desirability farLots = ok;
+	//
+	//availableDesirabilityMatrices[matrixKey] == what's above
 
+	// The combined values for given decision factors
 	//double f_closeLow = FuzzyAND(r_fuzzyClose, a_fuzzyLow);
 	//double f_closeMedium = FuzzyAND(r_fuzzyClose, a_fuzzyMedium);
 	//double f_closeLots = FuzzyAND(r_fuzzyClose, a_fuzzyLots);
