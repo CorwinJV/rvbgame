@@ -181,6 +181,18 @@
 				>
 			</File>
 			<File
+				RelativePath=".\fuzzy.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\fuzzyGraph.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\fuzzyGraphStorage.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\GameState.cpp"
 				>
 			</File>
@@ -287,6 +299,22 @@
 				>
 			</File>
 			<File
+				RelativePath=".\fuzzy.h"
+				>
+			</File>
+			<File
+				RelativePath=".\fuzzyGraph.h"
+				>
+			</File>
+			<File
+				RelativePath=".\fuzzyGraphStorage.h"
+				>
+			</File>
+			<File
+				RelativePath=".\fuzzyInput.h"
+				>
+			</File>
+			<File
 				RelativePath=".\GameState.h"
 				>
 			</File>
@@ -296,6 +324,10 @@
 			</File>
 			<File
 				RelativePath=".\interpreter.h"
+				>
+			</File>
+			<File
+				RelativePath=".\mymath.h"
 				>
 			</File>
 			<File
