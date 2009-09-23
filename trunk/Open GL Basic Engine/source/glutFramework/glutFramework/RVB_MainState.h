@@ -58,9 +58,7 @@ public:
 	void keyboardInput(unsigned char c, int x, int y);
 
 	void hurtSelectedEntities();
-	void healSelectedEntities();
-
-	
+	void healSelectedEntities();	
 };
 
 

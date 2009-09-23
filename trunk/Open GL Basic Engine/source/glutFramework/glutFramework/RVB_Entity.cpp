@@ -10,17 +10,6 @@
 
 void RVB_Entity::Update()
 {
-	// Fuzzy Graph Testing.. DEBUG
-	//myFuzzyGraphStore.addType("shotgun", 10.0, 15.0, 20.0, 35);
-	//myFuzzyGraphStore.printGraphDataDEBUG("shotgun");
-	//myFuzzyGraphStore.tweakFuzzy("shotgun", 10.0, 20.0, 25.0, 50.0);
-	//myFuzzyGraphStore.printGraphDataDEBUG("shotgun");
-	//myFuzzyGraphStore.printMapSizeDEBUG();
-	//myFuzzyGraphStore.addType("riffle", 2.0, 10.0, 15.0, 20.0);
-	//myFuzzyGraphStore.printGraphDataDEBUG("false");
-	//myFuzzyGraphStore.printGraphDataDEBUG("riffle");
-
-
 	double distanceToTarget = 0;
 	RVB_Bullet* tempBullet;
 
@@ -152,8 +141,17 @@ void RVB_Entity::Update()
 					else	// there is a friendly entity, or obstacle in the way, so we need to move
 					{
 						//cout << "Someone is in the way" << endl;
+
 						// call function to create a new path here
-						myHigherState = CHASING;
+						// if we're in optimal attack mode
+						if(myHigherState == ATTACKOPTIMAL)
+						{
+							findOptimalFiringLocation();
+						}
+						else // otherwise
+						{
+							findOpenFiringLocation();
+						}
 					}
 				}
 				//otherwise try to reload
@@ -656,9 +654,10 @@ void RVB_Entity::performBrainFunction()
 	case HIGHERIDLE:
 		myLowerState = IDLE;
 
-		myEntityTarget = NULL;
+		// disable self awareness....
+		//myEntityTarget = NULL;
 		// scan for target (enemies)
-		doEnemyScan();
+		//doEnemyScan();
 
 		// if we have a target
 		if(myEntityTarget != NULL)
@@ -759,6 +758,18 @@ void RVB_Entity::performBrainFunction()
 		{
 			myHigherState = ATTACKMOVE;
 			myLowerState = MOVING;
+		}
+		break;
+	case MOVETOTHENATTACK:
+		// make sure we're still moving if we haven't gotten to our position yet
+		myLowerState = MOVING;
+
+		// if we've reached our destination
+		if((xPos == destX) && (yPos == destY))
+		{
+			// start attacking
+			myLowerState = ATTACKING;
+			myHigherState = HIGHERATTACKING;
 		}
 		break;
 
@@ -1103,7 +1114,7 @@ void RVB_Entity::setPosition(int newX, int newY)
 RVB_Entity::RVB_Entity(entityType newType, int newX, int newY, entityDirection newDirection, RVB_Map* parentBoard, vector<RVB_Entity*>* boardObjectList)
 	:timeOfLastUpdate(0), timeSinceLastUpdate(0), timeStep(0.5),
 	movementSourceNodeX(-1), movementSourceNodeY(-1), completionPercentage(0.0),
-	defaultMovementIncr(.1), doneMoving(true), myFuzzyGraphStore()
+	defaultMovementIncr(.1), doneMoving(true)
 {
 	xPos = newX;
 	yPos = newY;
@@ -1386,17 +1397,13 @@ bool RVB_Entity::areThereAnyEntitiesInTheWay(double targetX_n, double targetY_n)
 			(movingCheckerY >= 0) && (floor(movingCheckerY) < board->getBoardHeight()) )
 		{
 			// check to see if there are any friendlies along the way
-			if(board->areThereAnyFriendsAt(movingCheckerX, movingCheckerY, type))
+			// or if there is an enemy besides the one you've targeted
+			if( (board->areThereAnyFriendsAt(movingCheckerX, movingCheckerY, type)) ||
+				(board->areThereAnyEnemiesAt(movingCheckerX, movingCheckerY, type)) )
 			{
 				// hey look, there was
 				return true;
-			}
-			// now check to see if there is an enemy besides the one you've targeted
-			if(board->areThereAnyEnemiesAt(movingCheckerX, movingCheckerY, type))
-			{
-				// yep we found a different enemy than who we were shooting at
-				return true;
-			}
+			}	
 		}
 
 		// make sure we're still on the baord, and not at the target yet
@@ -1418,6 +1425,80 @@ bool RVB_Entity::areThereAnyEntitiesInTheWay(double targetX_n, double targetY_n)
 	}
 	// we made it out with no obstructions, so there are no friendlies in the way
 	return false;
+}
+
+bool RVB_Entity::checkLOSFromThisPositionToTarget(double myX, double myY, double checkTargetX, double checkTargetY)
+{
+	// if they ask if you can see yourself, just say yeah we can
+	if((checkTargetX == myX) && (checkTargetY == myY))
+	{
+		return true;
+	}
+	// we are going to make two assumptions
+	// that our xpos is based on our top left
+	// that their target is based off of it's top left
+	
+	double storedTargetX = checkTargetX;// + 0.5;
+	double storedTargetY = checkTargetY;// + 0.5;
+
+	double movingCheckerX = myX;// + 0.5;
+	double movingCheckerY = myY;// + 0.5;
+
+	double incrementX = checkTargetX - myX;
+	double incrementY = checkTargetY - myY;
+
+	double magicNumber = max(GameVars->dAbs(incrementX), GameVars->dAbs(incrementY));
+
+	if(magicNumber != 0)	// damned black holes
+	{
+		// so now we have in an increment of 1 for our larger number and some percentage of this for the other number
+		magicNumber = 1/magicNumber;
+	}
+
+	incrementX *= magicNumber;
+	incrementY *= magicNumber;
+
+	bool done = false;
+
+	//cout << "Source = " << xPos << ", " << yPos << " and target = " << targetXn << ", " << targetYn << endl;
+	//cout << "increment X/y = " << incrementX << ", " << incrementY << endl;
+
+	movingCheckerX += incrementX;
+	movingCheckerY += incrementY;
+
+	while(!done)
+	{
+		if( (movingCheckerX >= 0) && (floor(movingCheckerX) < board->getBoardWidth()) &&
+			(movingCheckerY >= 0) && (floor(movingCheckerY) < board->getBoardHeight()) )
+		{
+			// check to see if there are any friendlies along the way
+			if( (board->isThereAnEntityAt(movingCheckerX, movingCheckerY)) ||
+				(board->isThereAnObstacleAt(movingCheckerX, movingCheckerY)) )
+			{
+				// hey look, there was
+				return false;
+			}
+		}
+
+		// make sure we're still on the baord, and not at the target yet
+		if( ((movingCheckerX > storedTargetX - incrementX) && (movingCheckerX > myX)) ||
+			((movingCheckerX < storedTargetX - incrementX) && (movingCheckerX < myX)) ||
+			((movingCheckerY > storedTargetY - incrementY) && (movingCheckerY > myY)) ||
+			((movingCheckerY < storedTargetY  - incrementY) && (movingCheckerY < myY)) ||
+			((movingCheckerX == storedTargetX - incrementX) && (movingCheckerY == storedTargetY - incrementY))
+			)
+		{
+			// when we're beyond the board, or have arrived at the target square
+			done = true;
+		}
+		//cout << "MovingCheckerX/y " << movingCheckerX << ", " << movingCheckerY << endl;
+		movingCheckerX += incrementX;
+		movingCheckerY += incrementY;
+		//cout << "MovingCheckerX/y " << movingCheckerX << ", " << movingCheckerY << endl;
+		//cout << "----------------------------------------------------------------------" << endl;
+	}
+	// we made it out with no obstructions, so there are no friendlies in the way
+	return true;
 }
 
 RVB_Entity* RVB_Entity::getEntityTarget()
@@ -1933,4 +2014,214 @@ void RVB_Entity::receivedRequestForHelp(RVB_Entity* entityChasing)
 {
 	setEnemyTarget(entityChasing);
 	setState(CHASING);
+}
+
+void RVB_Entity::findOpenFiringLocation()
+{
+	// go through the list of every map tile
+	int boardWidth = board->getBoardWidth();
+	int boardHeight = board->getBoardHeight();
+
+	double tempTargetX = myEntityTarget->getXPos();
+	double tempTargetY = myEntityTarget->getYPos();
+
+	// if we ever make a 10000x10000 board, then this number needs to get bigger
+	double closest = 1000000.0;
+	double checkClosest  = 1000000.0;	
+
+	// determine our weapon range
+	double weaponRange = currentWeapon->getRange();
+
+	// these variables will be set to the closest board position, if one exists
+	double boardPosX = -1;
+	double boardPosY = -1;
+
+	//system("cls");
+	
+	for(int y = 0; y < boardHeight; y++)
+	{
+		for(int x = 0; x < boardWidth; x++)
+		{
+			cout << board->getTileTypeAt(x, y);
+		}
+		cout << endl;
+	}
+
+	//cout << endl << " --------------------------------------- " << endl;
+
+	/*for(int y = 0; y < boardHeight; y++)
+	{
+		for(int x = 0; x < boardWidth; x++)
+		{
+			cout << board->isThereAnEntityAt(x, y);
+		}
+		cout << endl;
+	}
+	cout << endl << " --------------------------------------- " << endl;*/
+
+	for(int y = 0; y < boardHeight; y++)
+	{
+		for(int x = 0; x < boardWidth; x++)
+		{
+			bool visibleToTeam = isThisSpotVisibleToMyTeam(x, y); // is this spot visible to me or my team?  
+			bool entityIsAt   = board->isThereAnEntityAt(x, y);	// does this spot not have an entity in it?
+			bool obstacleIsAt = board->isThereAnObstacleAt(x, y);	// is there not an obstacle at this spot?  
+			double distance = GameVars->getDistanceToTarget(x, y, tempTargetX, tempTargetY); // are we in our weapons range
+			bool isKnown = (*board->getKnowledgeMap(type))[x][y]->getTileType() != TT_NULL; // is this position on our knownledge map?
+
+			// something is broken as fuck right here... this should not be !.... but it is... don't ask...
+			bool LOSat = checkLOSFromThisPositionToTarget(x, y, tempTargetX, tempTargetY); // and we have LOS to the target
+
+			// this needs to check against knowledge map too
+			if(!entityIsAt && !obstacleIsAt && LOSat && distance <= weaponRange && isKnown) 
+			{
+				// see how far the position being checked is from this position
+				checkClosest = GameVars->getDistanceToTarget(xPos, yPos, x, y);
+	
+				// now see if it is the closest one to where we are, that we've found so far
+				if(checkClosest < closest)
+				{
+					// set that to the spot to check from here on out
+					closest = checkClosest;
+					// and save the X and Y coordinates of that position
+					boardPosX = x;
+					boardPosY = y;
+	////				cout << "*";
+				}
+	//			else
+	//			{
+	////				cout << "o";
+	//			}
+			}
+	//		else
+	//		{
+	////			cout << ".";
+	//		}
+		}
+		cout << endl;
+	}
+	//system("pause"); //CJV_25
+
+	// if we have a valid spot, move to it (variable was initialized to -1)
+	if(boardPosX >= 0)
+	{
+		// set the destination point
+		destX = boardPosX;
+		destY = boardPosY;
+
+		// move to this position, and when you get there attack
+		setTarget(boardPosX, boardPosY);
+		myHigherState = MOVETOTHENATTACK;
+	}
+	else		// there are no spots on the board that we can find
+	{
+		// so go idle
+		myHigherState = HIGHERIDLE;
+		myLowerState = IDLE;
+	}
+}
+
+void RVB_Entity::findOptimalFiringLocation()
+{
+	// go through the list of every map tile
+	int boardWidth = board->getBoardWidth();
+	int boardHeight = board->getBoardHeight();
+
+	double tempTargetX = myEntityTarget->getXPos();
+	double tempTargetY = myEntityTarget->getYPos();
+
+	// if we ever make a 10000x10000 board, then this number needs to get bigger
+	double closest = 1000000.0;
+	double checkClosest  = 1000000.0;	
+
+	// determine our weapon range
+	double optimalRange = (currentWeapon->getRange() / 2);
+
+	// these variables will be set to the closest board position, if one exists
+	double boardPosX = -1;
+	double boardPosY = -1;
+
+	//system("cls");
+	
+	for(int y = 0; y < boardHeight; y++)
+	{
+		for(int x = 0; x < boardWidth; x++)
+		{
+			cout << board->getTileTypeAt(x, y);
+		}
+		cout << endl;
+	}
+
+	//cout << endl << " --------------------------------------- " << endl;
+
+	/*for(int y = 0; y < boardHeight; y++)
+	{
+		for(int x = 0; x < boardWidth; x++)
+		{
+			cout << board->isThereAnEntityAt(x, y);
+		}
+		cout << endl;
+	}
+	cout << endl << " --------------------------------------- " << endl;*/
+
+	for(int y = 0; y < boardHeight; y++)
+	{
+		for(int x = 0; x < boardWidth; x++)
+		{
+			bool visibleToTeam = isThisSpotVisibleToMyTeam(x, y); // is this spot visible to me or my team?  
+			bool entityIsAt   = board->isThereAnEntityAt(x, y);	// does this spot not have an entity in it?
+			bool obstacleIsAt = board->isThereAnObstacleAt(x, y);	// is there not an obstacle at this spot?  
+			double distance = GameVars->getDistanceToTarget(x, y, tempTargetX, tempTargetY); // are we in our weapons range
+			bool isKnown = (*board->getKnowledgeMap(type))[x][y]->getTileType() != TT_NULL; // is this position on our knownledge map?
+
+			// something is broken as fuck right here... this should not be !.... but it is... don't ask...
+			bool LOSat = checkLOSFromThisPositionToTarget(x, y, tempTargetX, tempTargetY); // and we have LOS to the target
+
+			// this needs to check against knowledge map too
+			if(!entityIsAt && !obstacleIsAt && LOSat && distance <= optimalRange && isKnown) 
+			{
+				// see how far the position being checked is from this position
+				checkClosest = GameVars->getDistanceToTarget(xPos, yPos, x, y);
+	
+				// now see if it is the closest one to where we are, that we've found so far
+				if(checkClosest < closest)
+				{
+					// set that to the spot to check from here on out
+					closest = checkClosest;
+					// and save the X and Y coordinates of that position
+					boardPosX = x;
+					boardPosY = y;
+	////				cout << "*";
+				}
+	//			else
+	//			{
+	////				cout << "o";
+	//			}
+			}
+	//		else
+	//		{
+	////			cout << ".";
+	//		}
+		}
+		cout << endl;
+	}
+	//system("pause"); //CJV_25
+
+	// if we have a valid spot, move to it (variable was initialized to -1)
+	if(boardPosX >= 0)
+	{
+		// set the destination point
+		destX = boardPosX;
+		destY = boardPosY;
+
+		// move to this position, and when you get there attack
+		setTarget(boardPosX, boardPosY);
+		myHigherState = MOVETOTHENATTACK;
+	}
+	else		// there are no spots on the board that we can find
+	{
+		// so go idle
+		myHigherState = HIGHERIDLE;
+		myLowerState = IDLE;
+	}
 }
