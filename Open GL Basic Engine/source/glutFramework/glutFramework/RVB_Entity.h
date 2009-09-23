@@ -2,19 +2,18 @@
 #define RVB_ENTITY_H
 
 #include <vector>
-#include <ctime>
 #include "RVB_Path.h"
+#include <ctime>
 #include "RVB_weapon.h"
 #include "ammoPack.h"
 #include "RVB_Bullet.h"
-#include "fuzzyGraphStorage.h"
 
 using namespace std; // syphilis
 
 enum entityDirection{ NORTH, NORTHEAST, EAST, SOUTHEAST, SOUTH, SOUTHWEST, WEST, NORTHWEST };
 
 enum entityState { ATTACKING, TAKING_COVER, MOVING, IDLE, SCANNING };
-enum higherState { CHASING, EVADING, ATTACKOPTIMAL, ATTACKMOVE, HIGHERMOVING, HIGHERATTACKING, HIGHERIDLE, DEAD, EXPLORE, SEEKANDDESTROY };
+enum higherState { CHASING, EVADING, ATTACKOPTIMAL, ATTACKMOVE, HIGHERMOVING, HIGHERATTACKING, HIGHERIDLE, DEAD, EXPLORE, SEEKANDDESTROY, MOVETOTHENATTACK };
 
 // circular dependancies require circular referencing and circular declarations
 class RVB_Map;
@@ -56,15 +55,24 @@ public:
 	higherState getHigherState();
 	entityState	getLowerState();
 	void receivedRequestForHelp(RVB_Entity* entityChasing);
+	void findOptimalFiringLocation();			// finds a location within half range of the current weapon with a clear shot at the target entity
+	void findOpenFiringLocation();				// finds any location with a clear shot at the target entity
+	bool checkLOSFromThisPositionToTarget(double myX, double myY, double checkTargetX, double checkTargetY);
+	// ^ checks to see if there is a line of sight from the position sent in to the target
 
 	void setMoveTargetToHidingSpotFrom(RVB_Entity* someEntity);				// sets move target to a hiding spot, otherwise sets move target to -1 if no hiding spot found
 	void setMoveTargetToVisibleHidingSpotFrom(RVB_Entity* sometEntity);		// sets move target to a hiding spot, otherwise sets move target to -1 if no hiding spot found
+
+	// put this back in private when done debugging (add it back in if you wanna debug firing
+	//rvbWeapon *currentWeapon;			// weapon you are currently using
 	
 private:
 	double xPos;						// the entities current X position
 	double yPos;						// the entities current Y position
-	double targetX;						// the X position of the target entity
-	double targetY;						// the Y position of the target entity
+	double targetX;						// the X position of the movement target
+	double targetY;						// the Y position of the movement target
+	double destX;						// the X position of a destination to move to
+	double destY;						// the Y position of a destination to move to
 	int health;							// the entity's health
 	entityDirection facingDirection;
 	bool canIShoot;						// wont let the gun shoot unless firing and reload time limits are satisfied
@@ -112,7 +120,7 @@ private:
 	higherState myHigherState;
 	entityState myLowerState;
 
-	void doMove();		// old update loop, now just for moving
+	void doMove();							// old update loop, now just for moving
 	void performBrainFunction();
 	void doEnemyScan();						// looks for an enemy and targets the closest one
 	bool isAnyoneLookingAtMe();				// checks if there's any enemies that are targetting me
@@ -128,13 +136,12 @@ private:
 	bool isThisSpotVisibleToMyTeam(double checkX, double checkY);	// pass in an x/y coord to see if that spot is visible to your team
 	RVB_Entity* getEntityTarget();			// returns a pointer to your currently selected entity pointer
 
-	bool scanned;		// internal shit for scanning
-	int scanDelay;		// delay for scanning
+	bool scanned;							// internal shit for scanning
+	int scanDelay;							// delay for scanning
 	bool canStillSeeEnemy();				// finds out if you can still see your enemy
 	void findExplorationTarget();			// finds a valid exploration target
 	void runToNearestFriendlyUnit();		// sets movement target to the nearest friendly unit
 
-	fuzzyGraphStorage myFuzzyGraphStore;	// Stores all of the graphs we want to register, used for fuzzy logic.
 };
 
 

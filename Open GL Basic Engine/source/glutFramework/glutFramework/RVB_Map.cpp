@@ -722,7 +722,9 @@ void RVB_Map::updateFog(entityType newType)
 								(*fogToUse)[x][y] -= (1.0/uberFactor * (((visionCalc * uberFactor + 1) - distanceToTarget)) / visionCalc * uberFactor);
 								
 								// updating knowledge map
-								if((*fogToUse)[(int)(x / uberFactor)][(int)(y / uberFactor)] < 0.5)
+								// TO ADJUST THE AMOUNT OF FADE REQUIRED, ADJUST THE DECIMAL IN THE IF BELOW
+								// HIGHER = EASIER TO SEE
+								if((*fogToUse)[(int)(x / uberFactor)][(int)(y / uberFactor)] < 0.8)
 								{
 									// if we can see this tile well enough to see what's there..
 									(*knowledgeMapToUse)[(int)(x / uberFactor)][(int)(y / uberFactor)]->setTileType(mBoard[(int)(x / uberFactor)][(int)(y / uberFactor)]->getTileType());

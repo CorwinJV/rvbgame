@@ -36,7 +36,7 @@ void RVB_MainState::init()
 	}
 
 
-	currentMap->addEntity(BLUE, 34, 3, NORTH);
+	currentMap->addEntity(BLUE, 20, 3, NORTH);
 	currentMap->addEntity(BLUE, 34, 6, NORTH);
 	currentMap->addEntity(BLUE, 34, 9, NORTH);
 	currentMap->addEntity(BLUE, 34, 12, NORTH);
@@ -93,10 +93,13 @@ bool RVB_MainState::Update()
 		panX = 0;
 	}
 	currentMap->setOffsetX(panX);*/
-	/*for(int x = 0; x < selectedEntityList->size(); x++)
+
+	// this will display the higher and lower states for the purposed of debugging
+	for(int x = 0; x < (int)selectedEntityList->size(); x++)
 	{
 		cout << "Higher State = " << (*selectedEntityList)[x]->getHigherState() << " | Lower State = " << (*selectedEntityList)[x]->getLowerState() << endl;
-	}*/
+	}
+
 	currentMap->Update();
 	return true;
 }
@@ -106,7 +109,6 @@ bool RVB_MainState::Update()
 //
 bool RVB_MainState::Draw()
 {
-
 	// update drawing data...
 	tileWidth = currentMap->getTileWidth();
 	scaleFactor = currentMap->getScale();
@@ -530,6 +532,14 @@ void RVB_MainState::keyboardInput(unsigned char c, int x, int y)
 	curMouseY = y;
 
 	int size = 0;
+
+	RVB_Entity* tempEntity;
+
+	// manual shooting variables
+	double targetX = 0;
+	double targetY = 0;
+	// create the temp bullet
+	//RVB_Bullet* tempBullet;
 	
 	//================================
 	// Regular Keys
@@ -616,6 +626,117 @@ void RVB_MainState::keyboardInput(unsigned char c, int x, int y)
 			// set any entity that is selected to attack optimal state
 			currentMap->setToAttackOptimal((*selectedEntityList)[x]);
 		}
+		break;
+	case '2':
+		// attack this guy
+		size = selectedEntityList->size();
+		tempEntity = NULL;
+		tempEntity = currentMap->getSelectableEntity(curMouseX, curMouseY);
+
+		if(tempEntity != NULL)
+		{
+			for(int x = 0; x < size; x++)
+			{
+				// set any entity that is selected to attack optimal state
+				(*selectedEntityList)[x]->setEnemyTarget(tempEntity);
+			}
+		}
+		break;
+	case '3':
+		size = selectedEntityList->size();
+		for(int x = 0; x < size; x++)
+		{
+			// set any entity that is selected to attack optimal state
+			(*selectedEntityList)[x]->setState(HIGHERATTACKING);
+		}
+		break;
+
+	case 'u':
+		// manual shoot up
+
+		// set to the size of the selected Entity list
+		//size = selectedEntityList->size();
+		//for(int x = 0; x < size; x++)
+		//{
+		//	// set target's position to where you are
+		//	targetX = (*selectedEntityList)[x]->getXPos();
+		//	targetY = (*selectedEntityList)[x]->getYPos();
+		//	// since we're shooting upward, subtract one from the Y coordinate
+		//	targetY -= 1;
+
+		//	// have any selected entity shoot upwards
+		//	tempBullet = (*selectedEntityList)[x]->currentWeapon->shotFired((*selectedEntityList)[x]->getXPos(), 
+		//													   (*selectedEntityList)[x]->getYPos(), 
+		//													    targetX, targetY, 1, NULL); 
+		//	// add the bullet to the map
+		//	currentMap->makeBullet(tempBullet);
+		//}
+		break;
+	case 'm':
+		// manual shoot down
+		
+		// set to the size of the selected Entity list
+		//size = selectedEntityList->size();
+		//for(int x = 0; x < size; x++)
+		//{
+		//	// set target's position to where you are
+		//	targetX = (*selectedEntityList)[x]->getXPos();
+		//	targetY = (*selectedEntityList)[x]->getYPos();
+		//	// since we're shooting down, add one from the Y coordinate
+		//	targetY += 2;
+
+		//	// have any selected entity shoot upwards
+		//	tempBullet = (*selectedEntityList)[x]->currentWeapon->shotFired((*selectedEntityList)[x]->getXPos(), 
+		//													   (*selectedEntityList)[x]->getYPos() + 1.5, 
+		//													    targetX, targetY, 1, NULL); 
+		//	// add the bullet to the map
+		//	currentMap->makeBullet(tempBullet);
+		//}
+		
+		break;
+	case 'j':
+		// manual shoot left
+		
+		//// set to the size of the selected Entity list
+		//size = selectedEntityList->size();
+		//for(int x = 0; x < size; x++)
+		//{
+		//	// set target's position to where you are
+		//	targetX = (*selectedEntityList)[x]->getXPos();
+		//	targetY = (*selectedEntityList)[x]->getYPos();
+		//	// since we're shooting left, subtract one from the X coordinate
+		//	targetX -= 1;
+
+		//	// have any selected entity shoot upwards
+		//	tempBullet = (*selectedEntityList)[x]->currentWeapon->shotFired((*selectedEntityList)[x]->getXPos(), 
+		//													   (*selectedEntityList)[x]->getYPos(), 
+		//													    targetX, targetY, 1, NULL); 
+		//	// add the bullet to the map
+		//	currentMap->makeBullet(tempBullet);
+		//}
+		
+		break;
+	case 'k':
+		// manual shoot right
+		
+		// set to the size of the selected Entity list
+		//size = selectedEntityList->size();
+		//for(int x = 0; x < size; x++)
+		//{
+		//	// set target's position to where you are
+		//	targetX = (*selectedEntityList)[x]->getXPos();
+		//	targetY = (*selectedEntityList)[x]->getYPos();
+		//	// since we're shooting right, add one from the X coordinate
+		//	targetX += 2;
+
+		//	// have any selected entity shoot upwards
+		//	tempBullet = (*selectedEntityList)[x]->currentWeapon->shotFired((*selectedEntityList)[x]->getXPos() + 1.5, 
+		//													   (*selectedEntityList)[x]->getYPos(), 
+		//													    targetX, targetY, 1, NULL); 
+		//	// add the bullet to the map
+		//	currentMap->makeBullet(tempBullet);
+		//}
+		
 		break;
 	default:
 		break;
