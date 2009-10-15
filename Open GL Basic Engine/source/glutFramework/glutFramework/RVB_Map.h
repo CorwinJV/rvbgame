@@ -104,6 +104,7 @@ public: // Public Interface
 	//void isThereAnEnemyUnitAt(double someX, double someY);
 	vector<vector<RVB_MapTile*>> *getKnowledgeMap(entityType someType);
 	void updateFog(entityType newType);
+	void loadMapFromFile(std::string filename);
 };
 
 

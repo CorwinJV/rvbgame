@@ -11,6 +11,7 @@ void RVB_MainState::init()
 	GameVars->mySide = RED;
 	//currentMap = new RVB_Map(mapSize, mapSize);
 	currentMap = new RVB_Map(40, 25);
+	currentMap->loadMapFromFile("map1.txt");
 	currentMap->setScale(.50);
 	currentMap->setScale(.2);
 	panRate = 5;
@@ -20,27 +21,27 @@ void RVB_MainState::init()
 
 
 	//// new stuff for testing whee
-	currentMap->addEntity(RED, 5, 3, NORTH);
-	currentMap->addEntity(RED, 5, 6, NORTH);
-	currentMap->addEntity(RED, 5, 9, NORTH);
-	currentMap->addEntity(RED, 5, 12, NORTH);
-	currentMap->addEntity(RED, 5, 15, NORTH);
+	//currentMap->addEntity(RED, 5, 3, NORTH);
+	//currentMap->addEntity(RED, 5, 6, NORTH);
+	//currentMap->addEntity(RED, 5, 9, NORTH);
+	//currentMap->addEntity(RED, 5, 12, NORTH);
+	//currentMap->addEntity(RED, 5, 15, NORTH);
 
-	for(int x = 0; x < 25; x+=3)
-	{
-		//currentMap->addEntity(RED, 1, x, NORTH);
-		//currentMap->addEntity(BLUE, 38, x, NORTH);
+	//for(int x = 0; x < 25; x+=3)
+	//{
+	//	//currentMap->addEntity(RED, 1, x, NORTH);
+	//	//currentMap->addEntity(BLUE, 38, x, NORTH);
 
-		//currentMap->addEntity(RED, 2, x, NORTH);
-		//currentMap->addEntity(BLUE, 37, x, NORTH);
-	}
+	//	//currentMap->addEntity(RED, 2, x, NORTH);
+	//	//currentMap->addEntity(BLUE, 37, x, NORTH);
+	//}
 
 
-	currentMap->addEntity(BLUE, 20, 3, NORTH);
-	currentMap->addEntity(BLUE, 34, 6, NORTH);
-	currentMap->addEntity(BLUE, 34, 9, NORTH);
-	currentMap->addEntity(BLUE, 34, 12, NORTH);
-	currentMap->addEntity(BLUE, 34, 15, NORTH);
+	//currentMap->addEntity(BLUE, 20, 3, NORTH);
+	//currentMap->addEntity(BLUE, 34, 6, NORTH);
+	//currentMap->addEntity(BLUE, 34, 9, NORTH);
+	//currentMap->addEntity(BLUE, 34, 12, NORTH);
+	//currentMap->addEntity(BLUE, 34, 15, NORTH);
 
 	curMouseX = 0;
 	curMouseY = 0;

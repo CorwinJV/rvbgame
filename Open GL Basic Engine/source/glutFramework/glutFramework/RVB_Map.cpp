@@ -929,3 +929,100 @@ vector<vector<RVB_MapTile*>>* RVB_Map::getKnowledgeMap(entityType someType)
 	}
 	return NULL;
 }
+
+
+//////////////////////
+
+void RVB_Map::loadMapFromFile(std::string filename)
+{
+	cout << "attempting to open file: " << filename << endl;
+	ifstream mapfile;
+	
+	mapfile.open(filename.c_str());
+	
+	int nWidth;
+	int nHeight;
+	mapfile >> nWidth;
+	mapfile >> nHeight;
+	
+	// now we just need to read in the map...
+	int mapSizeX = nWidth;
+	int mapSizeY = nHeight;
+
+	// Make a map of the provided dimensions
+
+	//=================================
+	// Set up our 2 dim vector with 
+	// null pointers 
+	mBoard.resize(mapSizeX);
+	redKnowledgeMap.resize(mapSizeX);
+	blueKnowledgeMap.resize(mapSizeX);
+	for(int x = 0; x < mapSizeX; x++)
+	{
+		mBoard[x].resize(mapSizeY);
+		redKnowledgeMap[x].resize(mapSizeY);
+		blueKnowledgeMap[x].resize(mapSizeY);
+	}
+
+	//=================================
+	// Allocate memory for null pointers 
+	// & initialize, it's just good practice.
+	// Ya fags.
+	for(int i = 0; i < mapSizeX; i++)
+	{
+		for(int j = 0; j < mapSizeY; j++)
+		{
+			mBoard[i][j] = new RVB_MapTile(TT_DEFAULT);
+			redKnowledgeMap[i][j] = new RVB_MapTile(TT_NULL);
+			blueKnowledgeMap[i][j] = new RVB_MapTile(TT_NULL);
+		}
+	}
+
+	//=================================
+	// Reg. Data Member Initialization
+	scaleFactor = 1.0;
+	panRate = 10;
+	mapOffsetX = 0;
+	mapOffsetY = 0;
+	cameraCenterX = mapWidth / 2;
+	cameraCenterY = mapHeight / 2;
+
+	redFog.resize(mapSizeX * uberFactor);
+	blueFog.resize(mapSizeX * uberFactor);
+	for(int x = 0; x < mapSizeX * uberFactor; x++)
+	{
+		redFog[x].resize(mapSizeY * uberFactor);
+		blueFog[x].resize(mapSizeY * uberFactor);
+		for(int y = 0; y < mapSizeY * uberFactor; y++)
+		{
+			redFog[x][y] = 1.0;
+			blueFog[x][y] = 1.0;
+		}
+	}
+
+	char fromFile;
+
+	for(int y = 0; y < nHeight; y++)
+	{
+		for(int x = 0; x < nWidth; x++)
+		{
+			mapfile >> fromFile;
+			switch(fromFile)
+			{
+			case 'o':				
+				mBoard[x][y]->setTileType(TT_OBSTACLE);
+				break;
+			case 'r':
+				this->addEntity(RED, x, y, NORTH);
+				break;
+			case 'b':
+				this->addEntity(BLUE, x, y, NORTH);
+				break;
+			}
+		}
+		//mapfile >> fromFile;
+	}	
+	mapfile.close();
+	mapWidth  = nWidth;
+	mapHeight = nHeight;
+}
