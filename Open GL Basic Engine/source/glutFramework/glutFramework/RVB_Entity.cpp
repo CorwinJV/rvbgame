@@ -43,7 +43,7 @@ void RVB_Entity::Update()
 				{
 					// then don't shoot at the dead guy
 					myHigherState = HIGHERIDLE;
-					myLowerState = IDLE
+					myLowerState = IDLE;
 					break;
 				}
 
@@ -2077,14 +2077,14 @@ void RVB_Entity::findOpenFiringLocation()
 
 	//system("cls");
 	
-	for(int y = 0; y < boardHeight; y++)
+	/*for(int y = 0; y < boardHeight; y++)
 	{
 		for(int x = 0; x < boardWidth; x++)
 		{
 			cout << board->getTileTypeAt(x, y);
 		}
 		cout << endl;
-	}
+	}*/
 
 	//cout << endl << " --------------------------------------- " << endl;
 
@@ -2108,7 +2108,6 @@ void RVB_Entity::findOpenFiringLocation()
 			double distance = GameVars->getDistanceToTarget(x, y, tempTargetX, tempTargetY); // are we in our weapons range
 			bool isKnown = (*board->getKnowledgeMap(type))[x][y]->getTileType() != TT_NULL; // is this position on our knownledge map?
 
-			// something is broken as fuck right here... this should not be !.... but it is... don't ask...
 			bool LOSat = checkLOSFromThisPositionToTarget(x, y, tempTargetX, tempTargetY); // and we have LOS to the target
 
 			// this needs to check against knowledge map too
@@ -2137,7 +2136,7 @@ void RVB_Entity::findOpenFiringLocation()
 	////			cout << ".";
 	//		}
 		}
-		cout << endl;
+		//cout << endl;
 	}
 	//system("pause"); //CJV_25
 
@@ -2182,14 +2181,14 @@ void RVB_Entity::findOptimalFiringLocation()
 
 	//system("cls");
 	
-	for(int y = 0; y < boardHeight; y++)
+	/*for(int y = 0; y < boardHeight; y++)
 	{
 		for(int x = 0; x < boardWidth; x++)
 		{
 			cout << board->getTileTypeAt(x, y);
 		}
 		cout << endl;
-	}
+	}*/
 
 	//cout << endl << " --------------------------------------- " << endl;
 
@@ -2242,7 +2241,7 @@ void RVB_Entity::findOptimalFiringLocation()
 	////			cout << ".";
 	//		}
 		}
-		cout << endl;
+		//cout << endl;
 	}
 	//system("pause"); //CJV_25
 

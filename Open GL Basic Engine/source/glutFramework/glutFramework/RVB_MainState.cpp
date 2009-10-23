@@ -1,4 +1,5 @@
 #include "RVB_MainState.h"
+#include "RVB_helpScreen.h"
 
 // while standing up to walk... "Woah!" -- Corwin
 
@@ -98,7 +99,8 @@ bool RVB_MainState::Update()
 	// this will display the higher and lower states for the purposed of debugging
 	for(int x = 0; x < (int)selectedEntityList->size(); x++)
 	{
-		cout << "Higher State = " << (*selectedEntityList)[x]->getHigherState() << " | Lower State = " << (*selectedEntityList)[x]->getLowerState() << endl;
+		// DEBUG STATES
+		//cout << "Higher State = " << (*selectedEntityList)[x]->getHigherState() << " | Lower State = " << (*selectedEntityList)[x]->getLowerState() << endl;
 	}
 
 	currentMap->Update();
@@ -171,7 +173,7 @@ bool RVB_MainState::Draw()
 
 	tempImg->drawImage(1024, 64, 0, 0);
 
-	
+	GameVars->helpButton->drawImage(75, 50, 924, 5);	
 
 	return true;
 }
@@ -428,7 +430,14 @@ void RVB_MainState::processMouseClick(int button, int state, int x, int y)
 	}
 	if((button == GLUT_LEFT) && (state == GLUT_UP))
 	{
-		if(isLeftMouseDown)
+		// help button, this should be done better
+		if((curMouseX >= 924) && (curMouseX <= 924+75) &&
+		   (curMouseY >= 5)   && (curMouseY <= 55))
+		{
+			setStatus(Passive);
+			GSM->addGameState<RVB_HelpScreen>();
+		}
+		else if(isLeftMouseDown)
 		{
 			// If you click on a non-entity
 				// Clear selected entities
@@ -570,34 +579,11 @@ void RVB_MainState::keyboardInput(unsigned char c, int x, int y)
 	case '-':
 		currentMap->zoomOut();
 		break;
-	//	// cycle selected entity
-	//case '[':
-	//	selectedEntity = currentMap->cycleEntityDown(selectedEntity);
-	//	break;
-	//case ']':
-	//	selectedEntity = currentMap->cycleEntityUp(selectedEntity);
-	//	break;
-		// deselect entity
-	case '\\':
-		selectedEntityList->clear();
-		break;
-		// clear all entity targets 
-	case '`':
-		currentMap->clearEntityTargets();
-		break;
-		// all selected targets move to mouse position
-	case ' ':
-		currentMap->setAllEntityTargets(curMouseX, curMouseY);
-		break;
-	case 'o':
+
+	case 'e':
 		setSelectedEntitiesState(EXPLORE);
 		break;
-	case 'p':
-		setSelectedEntitiesState(SEEKANDDESTROY);
-		break;
-	case 'i':
-		setSelectedEntitiesState(EVADING);
-		break;
+
 	case 'r':
 	case 'R':
 		selectedEntityList->clear();
@@ -613,46 +599,73 @@ void RVB_MainState::keyboardInput(unsigned char c, int x, int y)
 		{
 			GameVars->mySide = RED;
 		}
-	case 'g':
-		hurtSelectedEntities();
+	//	// cycle selected entity
+	//case '[':
+	//	selectedEntity = currentMap->cycleEntityDown(selectedEntity);
+	//	break;
+	//case ']':
+	//	selectedEntity = currentMap->cycleEntityUp(selectedEntity);
+	//	break;
+		// deselect entity
+	//case '\\':
+	//	selectedEntityList->clear();
+	//	break;
+	//	// clear all entity targets 
+	//case '`':
+	//	currentMap->clearEntityTargets();
+	//	break;
+	//	// all selected targets move to mouse position
+	//case ' ':
+	//	currentMap->setAllEntityTargets(curMouseX, curMouseY);
+	//	break;
+	
+	case 'p':
+		setSelectedEntitiesState(SEEKANDDESTROY);
 		break;
-	case 'h':
-		healSelectedEntities();
+	case 'i':
+		setSelectedEntitiesState(EVADING);
 		break;
-	case '1':
-		// set to the size of the selected Entity list
-		size = selectedEntityList->size();
-		for(int x = 0; x < size; x++)
-		{
-			// set any entity that is selected to attack optimal state
-			currentMap->setToAttackOptimal((*selectedEntityList)[x]);
-		}
-		break;
-	case '2':
-		// attack this guy
-		size = selectedEntityList->size();
-		tempEntity = NULL;
-		tempEntity = currentMap->getSelectableEntity(curMouseX, curMouseY);
+	
+	//case 'g':
+	//	hurtSelectedEntities();
+	//	break;
+	//case 'h':
+	//	healSelectedEntities();
+	//	break;
+	//case '1':
+	//	// set to the size of the selected Entity list
+	//	size = selectedEntityList->size();
+	//	for(int x = 0; x < size; x++)
+	//	{
+	//		// set any entity that is selected to attack optimal state
+	//		currentMap->setToAttackOptimal((*selectedEntityList)[x]);
+	//	}
+	//	break;
+	//case '2':
+	//	// attack this guy
+	//	size = selectedEntityList->size();
+	//	tempEntity = NULL;
+	//	tempEntity = currentMap->getSelectableEntity(curMouseX, curMouseY);
 
-		if(tempEntity != NULL)
-		{
-			for(int x = 0; x < size; x++)
-			{
-				// set any entity that is selected to attack optimal state
-				(*selectedEntityList)[x]->setEnemyTarget(tempEntity);
-			}
-		}
-		break;
-	case '3':
-		size = selectedEntityList->size();
-		for(int x = 0; x < size; x++)
-		{
-			// set any entity that is selected to attack optimal state
-			(*selectedEntityList)[x]->setState(HIGHERATTACKING);
-		}
-		break;
+	//	if(tempEntity != NULL)
+	//	{
+	//		for(int x = 0; x < size; x++)
+	//		{
+	//			// set any entity that is selected to attack optimal state
+	//			(*selectedEntityList)[x]->setEnemyTarget(tempEntity);
+	//		}
+	//	}
+	//	break;
+	//case '3':
+	//	size = selectedEntityList->size();
+	//	for(int x = 0; x < size; x++)
+	//	{
+	//		// set any entity that is selected to attack optimal state
+	//		(*selectedEntityList)[x]->setState(HIGHERATTACKING);
+	//	}
+	//	break;
 
-	case 'u':
+	//case 'u':
 		// manual shoot up
 
 		// set to the size of the selected Entity list
@@ -672,8 +685,8 @@ void RVB_MainState::keyboardInput(unsigned char c, int x, int y)
 		//	// add the bullet to the map
 		//	currentMap->makeBullet(tempBullet);
 		//}
-		break;
-	case 'm':
+		//break;
+	//case 'm':
 		// manual shoot down
 		
 		// set to the size of the selected Entity list
@@ -694,8 +707,8 @@ void RVB_MainState::keyboardInput(unsigned char c, int x, int y)
 		//	currentMap->makeBullet(tempBullet);
 		//}
 		
-		break;
-	case 'j':
+		//break;
+	//case 'j':
 		// manual shoot left
 		
 		//// set to the size of the selected Entity list
@@ -716,8 +729,8 @@ void RVB_MainState::keyboardInput(unsigned char c, int x, int y)
 		//	currentMap->makeBullet(tempBullet);
 		//}
 		
-		break;
-	case 'k':
+		//break;
+	//case 'k':
 		// manual shoot right
 		
 		// set to the size of the selected Entity list
@@ -738,7 +751,7 @@ void RVB_MainState::keyboardInput(unsigned char c, int x, int y)
 		//	currentMap->makeBullet(tempBullet);
 		//}
 		
-		break;
+		//break;
 	default:
 		break;
 	}

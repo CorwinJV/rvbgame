@@ -313,7 +313,7 @@ void RVB_Map::didBulletHitSomething()
 			// first check to make sure we haven't hit an obstacle along the way
 			if(isThereAnObstacleAt(bulletList[x]->getBulletXPos(), bulletList[x]->getBulletYPos()))
 			{
-				cout << "Bullet hit an obstacle" << endl;
+				//cout << "Bullet hit an obstacle" << endl;
 				// deactivate the bullet
 				bulletList[x]->setActive(false);
 				// bullet did not hit its intended target
@@ -935,7 +935,7 @@ vector<vector<RVB_MapTile*>>* RVB_Map::getKnowledgeMap(entityType someType)
 
 void RVB_Map::loadMapFromFile(std::string filename)
 {
-	cout << "attempting to open file: " << filename << endl;
+	//cout << "attempting to open file: " << filename << endl;
 	ifstream mapfile;
 	
 	mapfile.open(filename.c_str());

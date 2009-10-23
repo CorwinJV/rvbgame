@@ -253,6 +253,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\RVB_helpScreen.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\RVB_Map.cpp"
 				>
 			</File>
@@ -392,6 +396,10 @@
 			</File>
 			<File
 				RelativePath=".\RVB_Entity.h"
+				>
+			</File>
+			<File
+				RelativePath=".\RVB_helpScreen.h"
 				>
 			</File>
 			<File
