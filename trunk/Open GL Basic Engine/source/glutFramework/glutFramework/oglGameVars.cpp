@@ -103,6 +103,8 @@ void oglGameVars::init()
 	pistolShotImg = new oglTexture2D();
 	riffleShotImg = new oglTexture2D();
 	shottyShotImg = new oglTexture2D();
+	helpScreen = new oglTexture2D();
+	helpButton = new oglTexture2D();
 
 
 	rvbTile->loadImage("baseTile.png", 128, 128);
@@ -132,7 +134,8 @@ void oglGameVars::init()
 	pistolShotImg->loadImage("rvbBulletOrange.png", 16, 16);
 	riffleShotImg->loadImage("rvbBulletYellow.png", 16, 16);
 	shottyShotImg->loadImage("rvbBulletShotgun.png", 8, 8);
-	
+	helpScreen->loadImage("rvbHelpScreen.png", 800, 446);
+	helpButton->loadImage("helpButton.png", 150, 100);
 
 	loadFonts();
 }

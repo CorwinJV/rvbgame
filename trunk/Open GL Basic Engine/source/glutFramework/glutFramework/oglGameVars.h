@@ -127,6 +127,8 @@ public:
 	oglTexture2D*				pistolShotImg;
 	oglTexture2D*				riffleShotImg;
 	oglTexture2D*				shottyShotImg;
+	oglTexture2D*				helpScreen;
+	oglTexture2D*				helpButton;
 
 
 
