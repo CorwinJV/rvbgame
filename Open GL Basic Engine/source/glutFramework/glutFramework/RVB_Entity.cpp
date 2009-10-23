@@ -39,6 +39,14 @@ void RVB_Entity::Update()
 			// if we're trying to fire at something that isn't an entity
 			if(myEntityTarget != NULL)
 			{
+				if(myEntityTarget->getHealth() <= 0)
+				{
+					// then don't shoot at the dead guy
+					myHigherState = HIGHERIDLE;
+					myLowerState = IDLE
+					break;
+				}
+
 				fireAtX = myEntityTarget->getXPos();
 				fireAtY = myEntityTarget->getYPos();
 			}
@@ -341,29 +349,39 @@ void RVB_Entity::performBrainFunction()
 	int boardWidth = board->getBoardWidth();
 	int boardHeight = board->getBoardHeight();
 
-	// if my health is lower than 50
-	if(health < 50)
+	// If the player is not controlling this team,
+	// automate, and reciprocate, for some facilitate-ing.
+	if(GameVars->mySide != this->getType())
 	{
-		// and there is someone coming at me
-		//if(isAnyoneChasingMeThatICanSee())
-		if(isAnyoneChasingMe())
+		// if my health is lower than 50
+		if(health < 50)
 		{
-			// run like hell!
-			imBeingChased = true;
-			myHigherState = EVADING;
+			// and there is someone coming at me
+			//if(isAnyoneChasingMeThatICanSee())
+			if(isAnyoneChasingMe())
+			{
+				// run like hell!
+				imBeingChased = true;
+				myHigherState = EVADING;
+			}
 		}
 	}
 
-	// if my health is lower than 30
-	if(health < 30)
+	// If the player is not controlling this team,
+	// automate, and reciprocate, for some facilitate-ing.
+	if(GameVars->mySide != this->getType())
 	{
-		// and someone is even looking at me
-		//if(isAnyoneLookingAtMeThatICanSee())
-		if(isAnyoneLookingAtMe())
+		// if my health is lower than 30
+		if(health < 30)
 		{
-			// run like hell!
-			imBeingWatched = true;
-			myHigherState = EVADING;
+			// and someone is even looking at me
+			//if(isAnyoneLookingAtMeThatICanSee())
+			if(isAnyoneLookingAtMe())
+			{
+				// run like hell!
+				imBeingWatched = true;
+				myHigherState = EVADING;
+			}
 		}
 	}
 
@@ -574,6 +592,17 @@ void RVB_Entity::performBrainFunction()
 
 
 		// if we have a target, start attacking it, 
+		if(myEntityTarget != NULL)
+		{
+			if(myEntityTarget->getHealth() <= 0)
+			{
+				// then don't shoot at the dead guy
+				myHigherState = HIGHERIDLE;
+				myLowerState = IDLE;
+				break;
+			}
+		}
+
 		if((myEntityTarget != NULL) && (canStillSeeEnemy()))
 		{
 			if(GameVars->getDistanceToTarget(xPos, yPos, myEntityTarget->getXPos(), myEntityTarget->getYPos()) <= currentWeapon->getRange())
@@ -654,18 +683,28 @@ void RVB_Entity::performBrainFunction()
 	case HIGHERIDLE:
 		myLowerState = IDLE;
 
-		// disable self awareness....
-		//myEntityTarget = NULL;
-		// scan for target (enemies)
-		//doEnemyScan();
-
-		// if we have a target
-		if(myEntityTarget != NULL)
+		// If the player is not controlling this team,
+		// automate, and reciprocate, for some facilitate-ing.
+		if(GameVars->mySide != this->getType())
 		{
-			// SHOOOT!
-			myHigherState = HIGHERATTACKING;
-			myLowerState = ATTACKING;
+			// disable self awareness....
+			myEntityTarget = NULL;
+			// scan for target (enemies)
+			doEnemyScan();
+
+			// if we have a target
+			if(myEntityTarget != NULL)
+			{
+				// SHOOOT!
+				myHigherState = HIGHERATTACKING;
+				myLowerState = ATTACKING;
+			}
+			else
+			{
+				myHigherState = EXPLORE;
+			}
 		}
+
 
 		////is anyone attacking me?
 		//if(isAnyoneAttackingMeThatICanSee())

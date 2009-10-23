@@ -70,10 +70,17 @@ public:
 			steps = steps_n;
 			hueristicValue = steps + manhattanDistance;
 			available = false;
-			movementCost = (((myX == parent->getX()) || (myY == parent->getY())) ? 10 : 14);
+
+			if(parent == NULL)
+			{
+				movementCost = 0;
+			}
+			else
+			{
+				movementCost = (((myX == parent->getX()) || (myY == parent->getY())) ? 10 : 14);
+			}
 		}
 		// otherwise do nothing!
-
 	};
 
 	bool getAvailable()
