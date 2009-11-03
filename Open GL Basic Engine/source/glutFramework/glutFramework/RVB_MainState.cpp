@@ -228,17 +228,20 @@ void RVB_MainState::drawMoveTargets()
 	{
 		if((*itr) != NULL)
 		{
-			double xPos = (*itr)->getXPos();
-			double yPos = (*itr)->getYPos();
-
-			if((*itr)->getTargetX() != -1)
+			if((*itr)->getHealth() > 0)
 			{
-				double targetX = (*itr)->getTargetX();
-				double targetY = (*itr)->getTargetY();
-				GameVars->rvbEntityTarget->drawImage( (double)	(tileWidth*scaleFactor),			 // Width
-													(double)(tileWidth*scaleFactor),			 // Height
-													((targetX*tileWidth)*scaleFactor)+mapOffsetX,  // X
-													((targetY*tileWidth)*scaleFactor)+mapOffsetY); // Y
+				double xPos = (*itr)->getXPos();
+				double yPos = (*itr)->getYPos();
+
+				if((*itr)->getTargetX() != -1)
+				{
+					double targetX = (*itr)->getTargetX();
+					double targetY = (*itr)->getTargetY();
+					GameVars->rvbEntityTarget->drawImage( (double)	(tileWidth*scaleFactor),			 // Width
+														(double)(tileWidth*scaleFactor),			 // Height
+														((targetX*tileWidth)*scaleFactor)+mapOffsetX,  // X
+														((targetY*tileWidth)*scaleFactor)+mapOffsetY); // Y
+				}
 			}
 		}
 	}
@@ -255,10 +258,13 @@ void RVB_MainState::drawEntitySelectionCircles()
 			double xPos = (*itr)->getXPos();
 			double yPos = (*itr)->getYPos();
 
-			GameVars->rvbEntitySelected->drawImage( (double)	(tileWidth*scaleFactor),			 // Width
-													(double)(tileWidth*scaleFactor),			 // Height
-													((xPos*tileWidth)*scaleFactor)+mapOffsetX,  // X
-													((yPos*tileWidth)*scaleFactor)+mapOffsetY); // Y
+			if((*itr)->getHealth() > 0)
+			{
+				GameVars->rvbEntitySelected->drawImage( (double)	(tileWidth*scaleFactor),			 // Width
+														(double)(tileWidth*scaleFactor),			 // Height
+														((xPos*tileWidth)*scaleFactor)+mapOffsetX,  // X
+														((yPos*tileWidth)*scaleFactor)+mapOffsetY); // Y
+			}
 		}
 	}
 }
@@ -270,7 +276,10 @@ void RVB_MainState::drawEntityTargets()
 	{
 		if((*itr) != NULL)
 		{
-			(*itr)->drawEntityTarget(tileWidth, scaleFactor, mapOffsetX, mapOffsetY);
+			if((*itr)->getHealth() > 0)
+			{
+				(*itr)->drawEntityTarget(tileWidth, scaleFactor, mapOffsetX, mapOffsetY);
+			}
 		}
 	}
 }
@@ -543,7 +552,7 @@ void RVB_MainState::keyboardInput(unsigned char c, int x, int y)
 
 	int size = 0;
 
-	RVB_Entity* tempEntity;
+	//RVB_Entity* tempEntity;
 
 	// manual shooting variables
 	double targetX = 0;
@@ -574,9 +583,11 @@ void RVB_MainState::keyboardInput(unsigned char c, int x, int y)
 		break;
 		// zoom
 	case '+':
+	case '=':
 		currentMap->zoomIn();
 		break;
 	case '-':
+	case '_':
 		currentMap->zoomOut();
 		break;
 
@@ -609,11 +620,11 @@ void RVB_MainState::keyboardInput(unsigned char c, int x, int y)
 		// deselect entity
 	//case '\\':
 	//	selectedEntityList->clear();
-	//	break;
+		//break;
 	//	// clear all entity targets 
-	//case '`':
-	//	currentMap->clearEntityTargets();
-	//	break;
+	case '`':
+		currentMap->clearEntityTargets();
+		break;
 	//	// all selected targets move to mouse position
 	//case ' ':
 	//	currentMap->setAllEntityTargets(curMouseX, curMouseY);
@@ -625,13 +636,19 @@ void RVB_MainState::keyboardInput(unsigned char c, int x, int y)
 	case 'i':
 		setSelectedEntitiesState(EVADING);
 		break;
-	
-	//case 'g':
-	//	hurtSelectedEntities();
-	//	break;
-	//case 'h':
-	//	healSelectedEntities();
-	//	break;
+
+	case 'g':
+		if(GameVars->mySide == GOD)
+		{
+			hurtSelectedEntities();
+		}
+		break;
+	case 'h':
+		if(GameVars->mySide == GOD)
+		{
+			healSelectedEntities();
+		}
+		break;
 	//case '1':
 	//	// set to the size of the selected Entity list
 	//	size = selectedEntityList->size();
