@@ -508,9 +508,9 @@ void RVB_Map::zoomOut()
 	// zoom out 5%
 	scaleFactor /= 1.05;
 	// make sure we aren't zoomed out too far
-	if(scaleFactor < .2)
+	if(scaleFactor < .175)
 	{
-		scaleFactor = 0.2;
+		scaleFactor = 0.175;
 	}
 	//cout << scaleFactor << endl;
 }
